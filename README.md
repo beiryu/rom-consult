@@ -120,8 +120,8 @@ Frontend (`NEXT_PUBLIC_API_BASE_URL` is build-time):
 
 ```bash
 cd /opt/rom-consult/rom-consult-fe
-npm ci
-npm run build
+yarn install --frozen-lockfile
+yarn build
 ```
 
 Start PM2 (from repo root):
@@ -263,8 +263,8 @@ yarn migrate:prod
 
 # Frontend
 cd /opt/rom-consult/rom-consult-fe
-npm ci
-npm run build
+yarn install --frozen-lockfile
+yarn build
 
 # Reload PM2 processes
 cd /opt/rom-consult
