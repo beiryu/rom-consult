@@ -15,3 +15,9 @@ HEAD:   ca0b18fca5d3462cf9be4fae167ec5e7a0b01a4f
 # git remote add origin <your-monorepo-url>
 # git branch -M main
 # git push -u origin main
+
+## After push (recommended)
+# - Archive or mark read-only the old repos:
+#   beiryu/rom-consult-be.git
+#   beiryu/rom-consult.git (was nested under rom-consult-fe; avoid confusing it with this monorepo)
+# - Point README / description to the single canonical monorepo URL.
