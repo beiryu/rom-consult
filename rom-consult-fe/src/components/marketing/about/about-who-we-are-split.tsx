@@ -37,8 +37,10 @@ export const AboutWhoWeAreSplit = () => {
                                     <FeaturedIcon icon={Building02} size="md" color="brand" theme="dark" className="shrink-0" />
                                     <div>
                                         <p className="text-md font-semibold text-primary">Company information</p>
-                                        <p className="mt-1 text-sm text-tertiary">FD Global LLC, Seattle WA 98101, USA</p>
-                                        <p className="text-sm text-tertiary">+1 (206) 123 4569</p>
+                                        <p className="mt-1 text-sm text-tertiary">RomConsult LTD</p>
+                                        <p className="text-sm text-tertiary">60 rue François 1er, 75008 Paris</p>
+                                        <p className="text-sm text-tertiary">+1 (458) 800-7464</p>
+                                        <p className="text-sm text-tertiary">info@rom-consult.com</p>
                                     </div>
                                 </div>
                             </div>

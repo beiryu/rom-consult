@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase01, Building07, CheckCircle, Lock01, LogIn01, Mail01, ShieldTick, UserPlus02 } from "@untitledui/icons";
+import { Building07, CheckCircle, Lock01, LogIn01, Mail01, ShieldTick, UserPlus02 } from "@untitledui/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ContentDivider } from "@/components/application/content-divider/content-divider";
@@ -22,11 +22,6 @@ const PROVIDERS = [
         icon: Building07,
         roleLabel: "Technology platform",
         orgName: "RomConsult",
-    },
-    {
-        icon: Briefcase01,
-        roleLabel: "Service network",
-        orgName: "Consulting partners",
     },
 ] as const;
 

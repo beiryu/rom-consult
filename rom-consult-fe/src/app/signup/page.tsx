@@ -1,7 +1,6 @@
 "use client";
 
 import {
-    Briefcase01,
     Building07,
     CoinsStacked01,
     Lock01,
@@ -52,11 +51,6 @@ const PROVIDERS = [
         icon: Building07,
         roleLabel: "Technology platform",
         orgName: "RomConsult",
-    },
-    {
-        icon: Briefcase01,
-        roleLabel: "Service network",
-        orgName: "Consulting partners",
     },
 ] as const;
 
