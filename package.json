@@ -1,11 +1,6 @@
 {
   "name": "rom-consult",
   "private": true,
-  "scripts": {
-    "prepare": "husky",
-    "verify:hybrid": "bash scripts/verify-hybrid.sh"
-  },
-  "devDependencies": {
-    "husky": "^9.1.7"
-  }
+  "scripts": {},
+  "devDependencies": {}
 }
