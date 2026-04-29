@@ -1,0 +1,17 @@
+# Backup before monorepo squash (do not commit secrets)
+# Created when merging nested repos into single root repository.
+
+## rom-consult-be (nested .git removed after this snapshot)
+origin: git@github.com-beiryu:beiryu/rom-consult-be.git
+branch: main
+HEAD:   7fc7d99b7bc986cee3fd6322e708ec9202bbcf97
+
+## rom-consult-fe (nested .git removed after this snapshot)
+origin: git@github.com-beiryu:beiryu/rom-consult.git
+branch: main
+HEAD:   ca0b18fca5d3462cf9be4fae167ec5e7a0b01a4f
+
+## Next steps (when remote is chosen)
+# git remote add origin <your-monorepo-url>
+# git branch -M main
+# git push -u origin main

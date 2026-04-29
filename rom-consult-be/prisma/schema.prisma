@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(uuid())
+  userName    String    @unique
+  email       String    @unique
+  password    String
+  firstName   String?   @map("first_name")
+  lastName    String?   @map("last_name")
+  isVerified  Boolean   @default(false) @map("is_verified")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Store related fields
+  orders          Order[] @relation("UserOrders")
+  cart            Cart?
+  bookings        Booking[]
+
+  passwordResetOtp               String?   @map("password_reset_otp")
+  passwordResetOtpExpiry         DateTime? @map("password_reset_otp_expiry")
+  emailVerificationToken         String?   @map("email_verification_token")
+  emailVerificationTokenExpiry   DateTime? @map("email_verification_token_expiry")
+
+  @@map("users")
+}
+
+model ProductCategory {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String? // S3 key for category icon
+  isActive    Boolean   @default(true) @map("is_active")
+  products    Product[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("product_categories")
+}
+
+// Product
+model Product {
+  id              String          @id @default(uuid())
+  name            String
+  slug            String          @unique
+  description     String          @db.Text
+  price           Decimal         @db.Decimal(20, 8) // Support crypto decimals (fallback when no variants)
+  currency        String          @default("USD") // Base currency
+  isActive        Boolean         @default(true) @map("is_active")
+  categoryId      String          @map("category_id")
+  category        ProductCategory @relation(fields: [categoryId], references: [id])
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  bookings        Booking[]
+  features        Json?
+  included        Json?
+  sessionMeta     Json? @map("session_meta")
+  howItWorks      Json? @map("how_it_works")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isActive])
+  @@map("products")
+}
+
+// Shopping Cart
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+
+  unitPrice     Decimal?        @db.Decimal(20, 8) @map("unit_price")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// Orders & Payments
+model Order {
+  id             String          @id @default(uuid())
+  orderNumber    String          @unique @map("order_number") // e.g., ORD-20260129-XXXXX
+  userId         String          @map("user_id")
+  user           User            @relation("UserOrders", fields: [userId], references: [id])
+  status         OrderStatus     @default(PENDING)
+  totalAmount    Decimal         @map("total_amount") @db.Decimal(20, 8)
+  currency       String
+  items          OrderItem[]
+  booking        Booking?
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  completedAt    DateTime?       @map("completed_at")
+  cancelledAt    DateTime?       @map("cancelled_at")
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING // Awaiting payment
+  COMPLETED // Order delivered (payment confirmed)
+  CANCELLED // Order cancelled
+  REFUNDED // Payment refunded
+}
+
+model OrderItem {
+  id               String    @id @default(uuid())
+  orderId          String    @map("order_id")
+  order            Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        String    @map("product_id")
+  product          Product   @relation(fields: [productId], references: [id])
+  quantity         Int
+  priceAtPurchase  Decimal   @map("price_at_purchase") @db.Decimal(20, 8)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+enum BookingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model Booking {
+  id           String        @id @default(uuid())
+  bookingRef   String        @unique @map("booking_ref")
+  userId       String        @map("user_id")
+  user         User          @relation(fields: [userId], references: [id])
+  productId    String        @map("product_id")
+  product      Product       @relation(fields: [productId], references: [id])
+  platform     String?
+  scheduledAt  DateTime      @map("scheduled_at")
+  status       BookingStatus @default(SCHEDULED)
+  orderId      String?       @unique @map("order_id")
+  order        Order?        @relation(fields: [orderId], references: [id])
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+  @@map("bookings")
+}
+
+enum ConsultantTier {
+  BRONZE
+  SILVER
+  GOLD
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ConsultantApplication {
+  id            String            @id @default(uuid())
+  fullName      String            @map("full_name")
+  email         String
+  phone         String?
+  expertise     String
+  experience    String
+  bio           String            @db.Text
+  tier          ConsultantTier
+  daysAvailable String            @map("days_available")
+  timezone      String
+  timeSlots     String            @map("time_slots")
+  linkedin      String?
+  website       String?
+  motivation    String            @db.Text
+  agreedToTerms Boolean           @map("agreed_to_terms")
+  status        ApplicationStatus @default(PENDING)
+  reviewNotes   String?           @map("review_notes") @db.Text
+  reviewedAt    DateTime?         @map("reviewed_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([status])
+  @@map("consultant_applications")
+}
+

@@ -1,0 +1,75 @@
+# Local tooling
+.claude/
+
+# Root env / secrets
+.env
+.env.*
+!.env.example
+
+# Nginx certbot (generated on server; keep .gitkeep placeholders)
+nginx/certbot/conf/**
+!nginx/certbot/conf/.gitkeep
+nginx/certbot/www/**
+!nginx/certbot/www/.gitkeep
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build / output
+dist/
+build/
+out/
+.next/
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Yarn / pnp
+jspm_packages/
+.pnp/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing / coverage
+coverage/
+.nyc_output/
+**/coverage/
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma (local only)
+**/prisma/dev.db
+**/prisma/migrations_dev/
+
+# Vercel
+.vercel
+
+# Misc
+*.tgz
+*.pem
