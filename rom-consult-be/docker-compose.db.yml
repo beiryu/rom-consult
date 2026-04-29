@@ -1,7 +1,9 @@
-# Hybrid deploy: Postgres + Redis only. Bind to loopback so PM2 apps on the host use 127.0.0.1.
-# Usage: docker compose -f docker-compose.db.yml --env-file .env up -d
+# Hybrid deploy: Postgres + Redis only.
+# Run from backend directory:
+#   cd rom-consult-be && docker compose -f docker-compose.db.yml up -d
 #
-# Same volume names as full stack so you can reuse existing data.
+# This file reads variables from `rom-consult-be/.env` (deploy env).
+# DB ports are bound to loopback for host PM2 processes only.
 
 services:
   postgres:
@@ -10,6 +12,8 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:5432:5432"
+    env_file:
+      - ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-master123}
@@ -29,6 +33,8 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"
+    env_file:
+      - ./.env
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis-password}
     command:
