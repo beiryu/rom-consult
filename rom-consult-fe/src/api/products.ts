@@ -9,6 +9,7 @@ export type ProductCategory = {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    productCount?: number;
 };
 
 export type ProductListParams = PaginationParams;

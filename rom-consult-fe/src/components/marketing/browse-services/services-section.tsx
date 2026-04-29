@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchLg } from "@untitledui/icons";
+import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
 import { PaginationPageDefault } from "@/components/application/pagination/pagination";
 import { Input } from "@/components/base/input/input";
 import { searchProducts } from "@/api/products";
@@ -11,7 +12,7 @@ import { CategorySidebar, type ServiceCategory } from "./category-sidebar";
 import { mapProductToServiceCardItem } from "./product-mappers";
 import { ServiceCard } from "./service-card";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 10;
 
 export const ServicesSection = () => {
     const [activeCategoryId, setActiveCategoryId] = useState("all");
@@ -39,6 +40,7 @@ export const ServicesSection = () => {
         queryFn: () => searchProducts({ ...baseParams, searchQuery: debouncedSearchQuery }),
         enabled: hasSearch,
     });
+    const totalProductsQuery = useProducts({ page: 1, limit: 1 });
     const categoriesQuery = useProductCategories();
 
     const activeQuery = hasSearch ? searchQueryResult : productsQuery;
@@ -49,14 +51,14 @@ export const ServicesSection = () => {
     const categories = useMemo<ServiceCategory[]>(() => {
         const categoryItems = categoriesQuery.data?.items ?? [];
         return [
-            { id: "all", label: "All services", count: activeCategoryId === "all" ? totalItems : 0 },
+            { id: "all", label: "All services", count: totalProductsQuery.data?.metadata.totalItems ?? 0 },
             ...categoryItems.map((category) => ({
                 id: category.id,
                 label: category.name,
-                count: activeCategoryId === category.id ? totalItems : 0,
+                count: category.productCount ?? 0,
             })),
         ];
-    }, [activeCategoryId, categoriesQuery.data?.items, totalItems]);
+    }, [categoriesQuery.data?.items, totalProductsQuery.data?.metadata.totalItems]);
 
     const serviceCards = useMemo(() => products.map((product) => mapProductToServiceCardItem(product)), [products]);
 
@@ -107,8 +109,8 @@ export const ServicesSection = () => {
 
                     <div className="order-1 flex-1 lg:order-2">
                         {activeQuery.isPending ? (
-                            <div className="rounded-2xl border border-secondary bg-secondary p-6 text-md text-tertiary">
-                                Loading services...
+                            <div className="flex min-h-48 items-center justify-center rounded-2xl border border-secondary bg-secondary p-6">
+                                <LoadingIndicator type="line-spinner" size="lg" />
                             </div>
                         ) : null}
 

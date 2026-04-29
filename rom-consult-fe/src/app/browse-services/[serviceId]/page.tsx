@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
 import { ServiceDetailBookingPage } from "@/components/marketing/browse-services/service-detail-booking-page";
 import { mapProductToServiceItem } from "@/components/marketing/browse-services/product-mappers";
 import { useProductBySlug } from "@/hooks/use-products";
@@ -14,7 +15,9 @@ export default function ServiceBookingPage({ params }: ServiceBookingPageProps) 
     if (productQuery.isPending) {
         return (
             <div className="bg-primary py-12 md:py-16">
-                <div className="mx-auto max-w-container px-4 text-md text-tertiary md:px-8">Loading service details...</div>
+                <div className="mx-auto flex min-h-64 max-w-container items-center justify-center px-4 md:px-8">
+                    <LoadingIndicator type="line-spinner" size="lg" />
+                </div>
             </div>
         );
     }

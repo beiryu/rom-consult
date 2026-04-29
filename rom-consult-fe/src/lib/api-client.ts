@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth-store";
+import type { ApiEnvelope } from "@/types/api";
 
 export const apiClient = axios.create({
     baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1`,
@@ -30,19 +31,23 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const { data } = await refreshClient.get<{ accessToken: string; refreshToken: string }>("/auth/refresh-token", {
-                    headers: {
-                        Authorization: `Bearer ${authStore.refreshToken}`,
+                const { data } = await refreshClient.get<ApiEnvelope<{ accessToken: string; refreshToken: string }>>(
+                    "/auth/refresh-token",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${authStore.refreshToken}`,
+                        },
                     },
-                });
+                );
+                const refreshedTokens = data.data;
 
                 authStore.setTokens({
-                    accessToken: data.accessToken,
-                    refreshToken: data.refreshToken,
+                    accessToken: refreshedTokens.accessToken,
+                    refreshToken: refreshedTokens.refreshToken,
                 });
 
                 originalRequest.headers = originalRequest.headers ?? {};
-                originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+                originalRequest.headers.Authorization = `Bearer ${refreshedTokens.accessToken}`;
                 return apiClient(originalRequest);
             } catch {
                 authStore.logout();

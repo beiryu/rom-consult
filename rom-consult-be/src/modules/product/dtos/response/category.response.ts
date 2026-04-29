@@ -1,16 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { faker } from "@faker-js/faker";
-import { ProductCategory } from "@prisma/client";
 import { Expose } from "class-transformer";
 import {
   IsString,
   IsBoolean,
   IsDate,
-  IsOptional,
   IsUUID,
+  IsNumber,
+  IsOptional,
 } from "class-validator";
 
-export class CategoryResponseDto implements ProductCategory {
+export class CategoryResponseDto {
   @ApiProperty({
     example: faker.string.uuid(),
   })
@@ -61,4 +61,13 @@ export class CategoryResponseDto implements ProductCategory {
   @Expose()
   @IsDate()
   updatedAt: Date;
+
+  @ApiProperty({
+    example: 12,
+    description: "Total active products in this category",
+  })
+  @Expose()
+  @IsOptional()
+  @IsNumber()
+  productCount?: number;
 }

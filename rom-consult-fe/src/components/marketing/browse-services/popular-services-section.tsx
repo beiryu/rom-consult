@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
 import { Button } from "@/components/base/buttons/button";
 import { useProducts } from "@/hooks/use-products";
 import { mapProductToServiceCardItem } from "./product-mappers";
@@ -19,28 +20,34 @@ export const PopularServicesSection = () => {
                     <p className="mt-4 text-lg text-tertiary md:mt-5 md:text-xl">Our most requested consulting services.</p>
                 </div>
 
-                <ul className="mt-12 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:mt-16 md:gap-6 xl:grid-cols-4">
-                    {services.map((service) => (
-                        <li key={service.title}>
-                            <article className="flex h-full min-h-full flex-col rounded-xl border border-secondary bg-primary p-5 shadow-xs transition duration-100 ease-linear md:p-6">
-                                <h3 className="text-sm font-semibold text-primary">{service.title}</h3>
-                                <div className="mt-4 flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                                    <span className="text-display-xs font-semibold text-brand-secondary">{service.priceRange}</span>
-                                </div>
-                                <div className="mt-auto pt-6">
-                                    <Button
-                                        className="w-full"
-                                        color="primary"
-                                        size="md"
-                                        href={`/browse-services/${service.slug}`}
-                                    >
-                                        Book Now
-                                    </Button>
-                                </div>
-                            </article>
-                        </li>
-                    ))}
-                </ul>
+                {productsQuery.isPending ? (
+                    <div className="mt-12 flex min-h-48 items-center justify-center rounded-xl border border-secondary bg-secondary p-6 md:mt-16">
+                        <LoadingIndicator type="line-spinner" size="lg" />
+                    </div>
+                ) : (
+                    <ul className="mt-12 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:mt-16 md:gap-6 xl:grid-cols-4">
+                        {services.map((service) => (
+                            <li key={service.title}>
+                                <article className="flex h-full min-h-full flex-col rounded-xl border border-secondary bg-primary p-5 shadow-xs transition duration-100 ease-linear md:p-6">
+                                    <h3 className="text-sm font-semibold text-primary">{service.title}</h3>
+                                    <div className="mt-4 flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                                        <span className="text-display-xs font-semibold text-brand-secondary">{service.priceRange}</span>
+                                    </div>
+                                    <div className="mt-auto pt-6">
+                                        <Button
+                                            className="w-full"
+                                            color="primary"
+                                            size="md"
+                                            href={`/browse-services/${service.slug}`}
+                                        >
+                                            Book Now
+                                        </Button>
+                                    </div>
+                                </article>
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
                 {productsQuery.isError ? (
                     <div className="mt-6 rounded-xl border border-error_subtle bg-error-secondary p-4 text-sm text-error-primary">

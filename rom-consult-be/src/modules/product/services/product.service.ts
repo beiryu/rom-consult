@@ -103,6 +103,20 @@ export class ProductService implements IProductService {
     return [{ createdAt: "desc" }];
   }
 
+  private async adjustCategoryProductCount(
+    tx: Prisma.TransactionClient,
+    categoryId: string,
+    delta: number,
+  ): Promise<void> {
+    if (delta === 0) return;
+
+    await tx.$executeRaw`
+      UPDATE "product_categories"
+      SET "product_count" = GREATEST(0, "product_count" + ${delta})
+      WHERE "id" = ${categoryId}
+    `;
+  }
+
   async create(data: ProductCreateDto): Promise<ProductResponseDto> {
     try {
       const category = await this.databaseService.productCategory.findFirst({
@@ -122,29 +136,33 @@ export class ProductService implements IProductService {
         ? await this.ensureUniqueSlug(generateSlug(data.slug))
         : await this.ensureUniqueSlug(generateSlug(data.name));
 
-      const product = await this.databaseService.product.create({
-        data: {
-          name: data.name,
-          slug,
-          description: data.description,
-          price: data.price,
-          currency: data.currency ?? "USD",
-          isActive: data.isActive ?? true,
-          categoryId: data.categoryId,
-          features: data.features as Prisma.JsonValue | undefined,
-          included: data.included as Prisma.JsonValue | undefined,
-          sessionMeta: data.sessionMeta as Prisma.JsonValue | undefined,
-          howItWorks: data.howItWorks as Prisma.JsonValue | undefined,
-        },
-        include: adminInclude,
+      const isActive = data.isActive ?? true;
+      const full = await this.databaseService.$transaction(async (tx) => {
+        const created = await tx.product.create({
+          data: {
+            name: data.name,
+            slug,
+            description: data.description,
+            price: data.price,
+            currency: data.currency ?? "USD",
+            isActive,
+            categoryId: data.categoryId,
+            features: data.features as Prisma.JsonValue | undefined,
+            included: data.included as Prisma.JsonValue | undefined,
+            sessionMeta: data.sessionMeta as Prisma.JsonValue | undefined,
+            howItWorks: data.howItWorks as Prisma.JsonValue | undefined,
+          },
+          include: adminInclude,
+        });
+
+        if (isActive) {
+          await this.adjustCategoryProductCount(tx, data.categoryId, 1);
+        }
+
+        return created;
       });
 
-      const full = await this.databaseService.product.findUnique({
-        where: { id: product.id },
-        include: adminInclude,
-      });
-
-      this.logger.info({ productId: product.id }, "Product created");
+      this.logger.info({ productId: full.id }, "Product created");
       return this.mapToAdminDto(full!);
     } catch (error) {
       if (error instanceof HttpException) {
@@ -346,7 +364,21 @@ export class ProductService implements IProductService {
     data: ProductUpdateDto,
   ): Promise<ProductResponseDto> {
     try {
-      await this.findOne(id);
+      const existing = await this.databaseService.product.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          categoryId: true,
+          isActive: true,
+        },
+      });
+
+      if (!existing) {
+        throw new HttpException(
+          "product.error.productNotFound",
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
       if (data.categoryId) {
         const category = await this.databaseService.productCategory.findFirst({
@@ -403,12 +435,34 @@ export class ProductService implements IProductService {
         };
       }
 
-      await this.databaseService.$transaction([
-        this.databaseService.product.update({
+      const nextCategoryId = rest.categoryId ?? existing.categoryId;
+      const nextIsActive = rest.isActive ?? existing.isActive;
+
+      await this.databaseService.$transaction(async (tx) => {
+        await tx.product.update({
           where: { id },
           data: updateData,
-        }),
-      ]);
+        });
+
+        if (existing.categoryId === nextCategoryId) {
+          if (existing.isActive !== nextIsActive) {
+            await this.adjustCategoryProductCount(
+              tx,
+              nextCategoryId,
+              nextIsActive ? 1 : -1,
+            );
+          }
+          return;
+        }
+
+        if (existing.isActive) {
+          await this.adjustCategoryProductCount(tx, existing.categoryId, -1);
+        }
+
+        if (nextIsActive) {
+          await this.adjustCategoryProductCount(tx, nextCategoryId, 1);
+        }
+      });
 
       const product = await this.databaseService.product.findUnique({
         where: { id },
@@ -431,7 +485,21 @@ export class ProductService implements IProductService {
 
   async delete(id: string): Promise<ApiGenericResponseDto> {
     try {
-      await this.findOne(id);
+      const existing = await this.databaseService.product.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          categoryId: true,
+          isActive: true,
+        },
+      });
+
+      if (!existing) {
+        throw new HttpException(
+          "product.error.productNotFound",
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
       const orderItemCount = await this.databaseService.orderItem.count({
         where: {
@@ -446,7 +514,13 @@ export class ProductService implements IProductService {
         );
       }
 
-      await this.databaseService.product.delete({ where: { id } });
+      await this.databaseService.$transaction(async (tx) => {
+        await tx.product.delete({ where: { id } });
+
+        if (existing.isActive) {
+          await this.adjustCategoryProductCount(tx, existing.categoryId, -1);
+        }
+      });
 
       this.logger.info({ productId: id }, "Product deleted");
       return {
@@ -467,14 +541,39 @@ export class ProductService implements IProductService {
 
   async toggleActive(id: string): Promise<ProductResponseDto> {
     try {
-      const product = await this.findOne(id);
-
-      const updated = await this.databaseService.product.update({
+      const product = await this.databaseService.product.findUnique({
         where: { id },
-        data: {
-          isActive: !product.isActive,
+        select: {
+          id: true,
+          categoryId: true,
+          isActive: true,
         },
-        include: adminInclude,
+      });
+
+      if (!product) {
+        throw new HttpException(
+          "product.error.productNotFound",
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const updated = await this.databaseService.$transaction(async (tx) => {
+        const nextIsActive = !product.isActive;
+        const updatedProduct = await tx.product.update({
+          where: { id },
+          data: {
+            isActive: nextIsActive,
+          },
+          include: adminInclude,
+        });
+
+        await this.adjustCategoryProductCount(
+          tx,
+          product.categoryId,
+          nextIsActive ? 1 : -1,
+        );
+
+        return updatedProduct;
       });
 
       this.logger.info(
