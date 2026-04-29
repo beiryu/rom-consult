@@ -419,6 +419,7 @@ export class ProductsSeedService {
 
       const products = await this.createProducts(categories);
       this.logger.info(`Ensured ${products.length} products`);
+      await this.syncCategoryProductCounts(categories);
 
       this.logger.info("Product seeding completed successfully");
     } catch (error) {
@@ -495,5 +496,24 @@ export class ProductsSeedService {
     }
 
     return products;
+  }
+
+  private async syncCategoryProductCounts(
+    categories: Record<CategorySlug, ProductCategory>,
+  ): Promise<void> {
+    for (const category of Object.values(categories)) {
+      const count = await this.databaseService.product.count({
+        where: { categoryId: category.id },
+      });
+
+      await this.databaseService.productCategory.update({
+        where: { id: category.id },
+        data: { productCount: count },
+      });
+
+      this.logger.info(
+        `Updated category ${category.slug} productCount to ${count}`,
+      );
+    }
   }
 }
