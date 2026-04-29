@@ -6,7 +6,7 @@ import Image from "next/image";
 import { AlertFloating } from "@/components/application/alerts/alerts";
 import { Badge } from "@/components/base/badges/badges";
 import { Button } from "@/components/base/buttons/button";
-import { AmexIcon, MastercardIcon, PayPalIcon, StripeIcon, VisaIcon } from "@/components/foundations/payment-icons";
+import { AmexIcon, MastercardIcon, PayPalIcon, VisaIcon } from "@/components/foundations/payment-icons";
 
 type FooterNavItem = {
     label: string;
@@ -81,7 +81,6 @@ const footerNavList: FooterNavCategory[] = [
     },
 ];
 const paymentOptions = [
-    { label: "Stripe", icon: StripeIcon },
     { label: "Paypal", icon: PayPalIcon },
     { label: "Visa", icon: VisaIcon },
     { label: "MasterCard", icon: MastercardIcon },
@@ -118,18 +117,18 @@ export const FooterLarge12 = () => {
                             <p className="font-semibold text-primary">RomConsult LTD</p>
                             <div className="flex items-start gap-2">
                                 <MarkerPin01 className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
-                                <span>30 N Gould St STE R, Sheridan WY 82801, USA</span>
+                                <span>60 rue François 1er, 75008 Paris</span>
                             </div>
-                            <a href="tel:+12102016000" className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover">
+                            <a href="tel:+14588007464" className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover">
                                 <Phone className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
-                                <span>+1 210 201 6000</span>
+                                <span>+1 (458) 800-7464</span>
                             </a>
                             <a
-                                href="mailto:support@romconsult.com"
+                                href="mailto:info@rom-consult.com"
                                 className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover"
                             >
                                 <Mail01 className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
-                                <span>support@romconsult.com</span>
+                                <span>info@rom-consult.com</span>
                             </a>
                         </div>
                     </div>

@@ -8,10 +8,6 @@ const platforms = [
         iconUrl: "https://cdn.simpleicons.org/meta/0668E1",
     },
     {
-        name: "Stripe",
-        iconUrl: "https://cdn.simpleicons.org/stripe/635BFF",
-    },
-    {
         name: "Docker",
         iconUrl: "https://cdn.simpleicons.org/docker/2496ED",
     },
