@@ -23,6 +23,7 @@ const headerNavItems: HeaderNavItem[] = [
     { label: "Become a consultant", href: "/become-a-consultant" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
+    { label: "Support", href: "/support" },
     { label: "FAQ", href: "/faq" },
 ];
 
