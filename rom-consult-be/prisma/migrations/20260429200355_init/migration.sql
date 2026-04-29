@@ -10,6 +10,9 @@ CREATE TYPE "ConsultantTier" AS ENUM ('BRONZE', 'SILVER', 'GOLD');
 -- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
+-- CreateEnum
+CREATE TYPE "SupportTicketStatus" AS ENUM ('OPEN', 'IN_PROGRESS', 'RESOLVED');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -18,6 +21,8 @@ CREATE TABLE "users" (
     "password" TEXT NOT NULL,
     "first_name" TEXT,
     "last_name" TEXT,
+    "phone" TEXT,
+    "avatar" TEXT,
     "is_verified" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -37,6 +42,7 @@ CREATE TABLE "product_categories" (
     "slug" TEXT NOT NULL,
     "icon" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "product_count" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -157,6 +163,39 @@ CREATE TABLE "consultant_applications" (
     CONSTRAINT "consultant_applications_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "contact_messages" (
+    "id" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT,
+    "message" TEXT NOT NULL,
+    "privacy_accepted" BOOLEAN NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "contact_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "support_tickets" (
+    "id" TEXT NOT NULL,
+    "public_reference" TEXT NOT NULL,
+    "full_name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "booking_id" TEXT,
+    "consultant_id" TEXT,
+    "category" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "status" "SupportTicketStatus" NOT NULL DEFAULT 'OPEN',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "support_tickets_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_userName_key" ON "users"("userName");
 
@@ -222,6 +261,27 @@ CREATE INDEX "consultant_applications_email_idx" ON "consultant_applications"("e
 
 -- CreateIndex
 CREATE INDEX "consultant_applications_status_idx" ON "consultant_applications"("status");
+
+-- CreateIndex
+CREATE INDEX "contact_messages_email_idx" ON "contact_messages"("email");
+
+-- CreateIndex
+CREATE INDEX "contact_messages_created_at_idx" ON "contact_messages"("created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "support_tickets_public_reference_key" ON "support_tickets"("public_reference");
+
+-- CreateIndex
+CREATE INDEX "support_tickets_email_idx" ON "support_tickets"("email");
+
+-- CreateIndex
+CREATE INDEX "support_tickets_public_reference_idx" ON "support_tickets"("public_reference");
+
+-- CreateIndex
+CREATE INDEX "support_tickets_status_idx" ON "support_tickets"("status");
+
+-- CreateIndex
+CREATE INDEX "support_tickets_created_at_idx" ON "support_tickets"("created_at");
 
 -- AddForeignKey
 ALTER TABLE "products" ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "product_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
