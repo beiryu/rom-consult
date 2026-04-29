@@ -40,7 +40,7 @@ const quickResources = [
 
 declare global {
     interface Window {
-        $crisp?: Array<[string, string, string]>;
+        $crisp?: Array<[string, string] | [string, string, string]>;
     }
 }
 
@@ -186,9 +186,9 @@ export const SupportScreen = () => {
                                         placeholder="Please describe your issue in detail..."
                                         rows={5}
                                         value={ticketMessage}
-                                        onChange={(e) => {
-                                            setTicketMessage(e.target.value);
-                                            if (messageError && e.target.value.trim().length >= 20) {
+                                        onChange={(value) => {
+                                            setTicketMessage(value);
+                                            if (messageError && value.trim().length >= 20) {
                                                 setMessageError("");
                                             }
                                         }}
