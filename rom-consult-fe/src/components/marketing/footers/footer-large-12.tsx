@@ -42,7 +42,7 @@ const footerNavList: FooterNavCategory[] = [
             },
             {
                 label: "Support",
-                href: "/contact",
+                href: "/support",
             },
             {
                 label: "Contact Us",
