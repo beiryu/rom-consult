@@ -26,15 +26,6 @@ const headerNavItems: HeaderNavItem[] = [
     { label: "FAQ", href: "/faq" },
 ];
 
-const footerNavItems = [
-    { label: "Book Consulting", href: "/browse-services" },
-    { label: "Become a consultant", href: "/become-a-consultant" },
-    { label: "About", href: "/about" },
-    { label: "FAQ", href: "/faq" },
-    { label: "Contact", href: "/contact" },
-    { label: "Legal", href: "#" },
-];
-
 const getInitials = (fullName?: string) => {
     if (!fullName?.trim()) {
         return "U";
@@ -90,22 +81,6 @@ const MobileFooter = (props: {
 }) => {
     return (
         <div className="flex flex-col gap-8 border-t border-secondary px-4 py-6">
-            <div>
-                <ul className="grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-6 gap-y-3">
-                    {footerNavItems.map((navItem) => (
-                        <li key={navItem.label}>
-                            <Button
-                                color="link-gray"
-                                size="sm"
-                                href={navItem.href}
-                                className="text-secondary hover:text-primary *:data-icon:text-fg-quaternary hover:*:data-icon:text-fg-primary"
-                            >
-                                {navItem.label}
-                            </Button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
             <div className="flex flex-col gap-3">
                 {!props.isHydrated ? null : props.isAuthenticated ? (
                     <div className="flex items-center gap-3">
@@ -126,12 +101,6 @@ const MobileFooter = (props: {
                         </Button>
                     </>
                 )}
-                <Button size="md" href="/contact" color="secondary" className="bg-primary text-primary hover:bg-primary_hover">
-                    Contact RomConsult
-                </Button>
-                <Button color="secondary" size="md" href="#services" className="bg-brand-solid text-primary_on-brand ring-brand_alt hover:bg-brand-solid_hover">
-                    View services
-                </Button>
             </div>
         </div>
     );

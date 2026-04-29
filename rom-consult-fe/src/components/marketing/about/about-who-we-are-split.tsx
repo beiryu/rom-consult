@@ -15,7 +15,7 @@ export const AboutWhoWeAreSplit = () => {
                         <p className="text-sm font-semibold tracking-wide text-brand-secondary uppercase md:text-md">Who we are</p>
                         <h2 className="mt-3 text-display-sm font-semibold text-primary md:text-display-md">Professional business consulting platform</h2>
                         <p className="mt-4 text-lg text-tertiary md:mt-5 md:text-xl">
-                            Optimark Media connects entrepreneurs and businesses with expert consultants for live 1-on-1 video sessions across digital
+                            Rom Consult connects entrepreneurs and businesses with expert consultants for live 1-on-1 video sessions across digital
                             marketing, cloud, and AI automation.
                         </p>
 

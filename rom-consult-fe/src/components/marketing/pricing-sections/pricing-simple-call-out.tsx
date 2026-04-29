@@ -44,7 +44,7 @@ export const PricingSimpleCallOut = () => {
                     <p className="text-sm font-semibold text-brand-secondary md:text-md">Pricing</p>
                     <h2 className="mt-3 text-display-sm font-semibold text-primary md:text-display-md">Simple consultant tiers from $5/hour</h2>
                     <p className="mt-4 text-lg text-tertiary md:mt-6 md:text-xl">
-                        Following the Optimark model, each session includes live video call, screen sharing, and actionable post-session documentation.
+                        Following the Rom Consult model, each session includes live video call, screen sharing, and actionable post-session documentation.
                     </p>
                 </div>
 

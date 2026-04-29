@@ -34,19 +34,19 @@ const footerNavList: FooterNavCategory[] = [
             },
             {
                 label: "About Us",
-                href: "/about-page-01",
+                href: "/about",
             },
             {
                 label: "FAQs",
-                href: "/faq-page-08",
+                href: "/faq",
             },
             {
                 label: "Support",
-                href: "/contact-page-03",
+                href: "/contact",
             },
             {
                 label: "Contact Us",
-                href: "/contact-page-03",
+                href: "/contact",
             },
         ],
     },
@@ -97,7 +97,7 @@ export const FooterLarge12 = () => {
                         <AlertFloating
                             color="warning"
                             title="Disclaimer"
-                            description="Optimark Media provides technical consulting and implementation services for cloud platforms and digital advertising systems. We do not guarantee specific financial results, earnings, or ROI. All business outcomes vary based on individual execution, market conditions, and other factors."
+                            description="Rom Consult provides technical consulting and implementation services for cloud platforms and digital advertising systems. We do not guarantee specific financial results, earnings, or ROI. All business outcomes vary based on individual execution, market conditions, and other factors."
                             confirmLabel="Learn more"
                             confirmHref="/disclaimer"
                         />

@@ -42,7 +42,7 @@ export const AboutBenefitsGrid = () => {
             <div className="mx-auto max-w-container px-4 md:px-8">
                 <div className="mx-auto max-w-3xl text-center">
                     <p className="text-sm font-semibold uppercase tracking-wide text-brand-secondary md:text-md">Benefits</p>
-                    <h2 className="mt-3 text-display-sm font-semibold text-primary md:text-display-md">Why choose Optimark Media?</h2>
+                    <h2 className="mt-3 text-display-sm font-semibold text-primary md:text-display-md">Why choose Rom Consult?</h2>
                     <p className="mt-4 text-lg text-tertiary md:mt-5 md:text-xl">The reason our consulting platform stands out.</p>
                 </div>
 

@@ -118,7 +118,7 @@ const ContactFormAndMap = () => {
                                     {
                                         title: "Email",
                                         icon: Mail01,
-                                        content: <p className="mt-1 text-md font-semibold text-primary_on-brand">support@optimarkmedia.com</p>,
+                                        content: <p className="mt-1 text-md font-semibold text-primary_on-brand">support@romconsult.com</p>,
                                     },
                                     {
                                         title: "Response time",
@@ -130,7 +130,7 @@ const ContactFormAndMap = () => {
                                         icon: MarkerPin01,
                                         content: (
                                             <p className="mt-1 whitespace-pre-line text-md text-secondary_on-brand">
-                                                <span className="font-semibold text-primary_on-brand">Optimark Media LTD</span>
+                                                <span className="font-semibold text-primary_on-brand">RomConsult LTD</span>
                                                 {"\n"}20 Wenlock Road
                                                 {"\n"}London, N1 7GU, England
                                                 {"\n"}+44 7474 711663

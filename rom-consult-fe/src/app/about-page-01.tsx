@@ -107,7 +107,7 @@ const HeaderCentered = () => {
                         Strategic guidance for digital growth and technical execution
                     </h1>
                     <p className="mt-4 max-w-120 text-lg text-balance text-brand-secondary md:mt-6 md:text-xl">
-                        Optimark Media helps entrepreneurs and teams solve marketing, cloud, analytics, and automation challenges through live 1-on-1 expert
+                        Rom Consult helps entrepreneurs and teams solve marketing, cloud, analytics, and automation challenges through live 1-on-1 expert
                         sessions.
                     </p>
                 </div>

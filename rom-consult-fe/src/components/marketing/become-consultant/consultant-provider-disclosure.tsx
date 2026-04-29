@@ -11,7 +11,7 @@ const providers = [
     },
     {
         label: "Service Provider",
-        name: "Optimark Media LTD",
+        name: "RomConsult LTD",
         icon: Briefcase01,
     },
 ];
