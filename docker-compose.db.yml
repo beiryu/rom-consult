@@ -1,0 +1,51 @@
+# Hybrid deploy: Postgres + Redis only. Bind to loopback so PM2 apps on the host use 127.0.0.1.
+# Usage: docker compose -f docker-compose.db.yml --env-file .env up -d
+#
+# Same volume names as full stack so you can reuse existing data.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: romconsult-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-master123}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - romconsult-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: romconsult-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis-password}
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD:-redis-password}
+    volumes:
+      - romconsult-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${REDIS_PASSWORD:-redis-password}' ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  romconsult-postgres-data:
+  romconsult-redis-data:

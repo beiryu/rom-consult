@@ -5,6 +5,7 @@
 .env
 .env.*
 !.env.example
+!**/.env.production.example
 
 # Nginx certbot (generated on server; keep .gitkeep placeholders)
 nginx/certbot/conf/**
