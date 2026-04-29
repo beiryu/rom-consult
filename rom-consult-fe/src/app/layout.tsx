@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import { BannerCountdownBrandFullWidth } from "@/components/shared-assets/banners/banner-countdown-brand-full-width";
 import { SitePromoModals } from "@/components/application/modals/site-promo-modals";
 import { FooterLarge12 } from "@/components/marketing/footers/footer-large-12";
@@ -75,6 +76,9 @@ export default function RootLayout({
                         </QueryProvider>
                     </Theme>
                 </RouteProvider>
+                <Script id="crisp-chat" strategy="afterInteractive">
+                    {`window.$crisp=[];window.CRISP_WEBSITE_ID="0cda0257-5a94-4228-80ee-581382b0f3ab";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`}
+                </Script>
             </body>
         </html>
     );
