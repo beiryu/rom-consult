@@ -23,6 +23,7 @@ import { Select } from "@/components/base/select/select";
 import type { SelectItemType } from "@/components/base/select/select-shared";
 import { TextArea } from "@/components/base/textarea/textarea";
 import { FeaturedIcon } from "@/components/foundations/featured-icon/featured-icon";
+import { useToastHelpers } from "@/providers/alerts-provider";
 
 const categoryItems: SelectItemType[] = [
     { id: "technical", label: "Technical issue" },
@@ -46,11 +47,11 @@ declare global {
 }
 
 export const SupportScreen = () => {
+    const toast = useToastHelpers();
     const [ticketMessage, setTicketMessage] = useState("");
     const [category, setCategory] = useState("");
     const [messageError, setMessageError] = useState("");
     const [submitError, setSubmitError] = useState("");
-    const [submitSuccess, setSubmitSuccess] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [lookupError, setLookupError] = useState("");
     const [lookupResult, setLookupResult] = useState<null | { ticketId: string; status: string }>(null);
@@ -142,15 +143,18 @@ export const SupportScreen = () => {
                                     onSubmit={async (e) => {
                                         e.preventDefault();
                                         setSubmitError("");
-                                        setSubmitSuccess("");
 
                                         if (ticketMessage.trim().length < 20) {
-                                            setMessageError("Message must be at least 20 characters.");
+                                            const message = "Message must be at least 20 characters.";
+                                            setMessageError(message);
+                                            toast.error(message, "Message too short");
                                             return;
                                         }
 
                                         if (!category) {
-                                            setSubmitError("Please select a category before submitting your ticket.");
+                                            const message = "Please select a category before submitting your ticket.";
+                                            setSubmitError(message);
+                                            toast.error(message, "Missing category");
                                             return;
                                         }
 
@@ -164,7 +168,9 @@ export const SupportScreen = () => {
                                         const subject = typeof data.subject === "string" ? data.subject.trim() : "";
 
                                         if (!fullName || !email || !subject) {
-                                            setSubmitError("Please complete all required fields before submitting.");
+                                            const message = "Please complete all required fields before submitting.";
+                                            setSubmitError(message);
+                                            toast.error(message, "Missing required fields");
                                             return;
                                         }
 
@@ -179,15 +185,16 @@ export const SupportScreen = () => {
                                                 subject,
                                                 message: ticketMessage.trim(),
                                             });
-                                            setSubmitSuccess(
-                                                `Ticket submitted successfully. Your Ticket ID is ${ticket.publicReference}.`,
-                                            );
+                                            toast.success(`Ticket submitted successfully. Your Ticket ID is ${ticket.publicReference}.`, "Ticket submitted");
                                             form.reset();
                                             setTicketMessage("");
                                             setCategory("");
                                             setLookupResult(null);
-                                        } catch {
-                                            setSubmitError("Unable to submit your ticket right now. Please try again shortly.");
+                                        } catch (error) {
+                                            const message =
+                                                error instanceof Error ? error.message : "Unable to submit your ticket right now. Please try again shortly.";
+                                            setSubmitError(message);
+                                            toast.error(message, "Ticket submit failed");
                                         } finally {
                                             setIsSubmitting(false);
                                         }
@@ -256,7 +263,6 @@ export const SupportScreen = () => {
                                     />
 
                                     {submitError ? <p className="text-sm text-error-primary">{submitError}</p> : null}
-                                    {submitSuccess ? <p className="text-sm text-success-primary">{submitSuccess}</p> : null}
 
                                     <Button type="submit" size="xl" iconLeading={Send01} className="w-full" isDisabled={isSubmitting} isLoading={isSubmitting}>
                                         Submit Ticket
@@ -278,7 +284,9 @@ export const SupportScreen = () => {
                                         const ticketEmail = typeof data.ticketEmail === "string" ? data.ticketEmail.trim() : "";
 
                                         if (!ticketId || !ticketEmail) {
-                                            setLookupError("Please provide both ticket ID and email.");
+                                            const message = "Please provide both ticket ID and email.";
+                                            setLookupError(message);
+                                            toast.error(message, "Lookup failed");
                                             return;
                                         }
 
@@ -291,9 +299,15 @@ export const SupportScreen = () => {
                                                 ticketId: ticket.publicReference,
                                                 status: ticket.status,
                                             });
-                                        } catch {
+                                            toast.info(
+                                                `Ticket ${ticket.publicReference} is currently ${ticket.status.replaceAll("_", " ")}.`,
+                                                "Ticket status",
+                                            );
+                                        } catch (error) {
                                             setLookupResult(null);
-                                            setLookupError("No ticket found for that ticket ID and email.");
+                                            const message = error instanceof Error ? error.message : "No ticket found for that ticket ID and email.";
+                                            setLookupError(message);
+                                            toast.error(message, "Lookup failed");
                                         }
                                     }}
                                 >

@@ -8,6 +8,8 @@ import { ConsultantApplicationModule } from "src/modules/consultant-application/
 import { ContactMessageModule } from "src/modules/contact-message/contact-message.module";
 import { SupportTicketModule } from "src/modules/support-ticket/support-ticket.module";
 import { ProductModule } from "src/modules/product/product.module";
+import { CartModule } from "src/modules/cart/cart.module";
+import { OrderModule } from "src/modules/order/order.module";
 
 import { HealthController } from "./controllers/health.controller";
 @Module({
@@ -25,6 +27,8 @@ import { HealthController } from "./controllers/health.controller";
     ContactMessageModule,
     SupportTicketModule,
     ProductModule,
+    CartModule,
+    OrderModule,
   ],
   controllers: [HealthController],
 })

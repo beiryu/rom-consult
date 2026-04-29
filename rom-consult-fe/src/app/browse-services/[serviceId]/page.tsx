@@ -1,16 +1,15 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
 import { ServiceDetailBookingPage } from "@/components/marketing/browse-services/service-detail-booking-page";
 import { mapProductToServiceItem } from "@/components/marketing/browse-services/product-mappers";
 import { useProductBySlug } from "@/hooks/use-products";
 
-interface ServiceBookingPageProps {
-    params: { serviceId: string };
-}
-
-export default function ServiceBookingPage({ params }: ServiceBookingPageProps) {
-    const productQuery = useProductBySlug(params.serviceId);
+export default function ServiceBookingPage() {
+    const params = useParams<{ serviceId: string }>();
+    const serviceId = params?.serviceId ?? "";
+    const productQuery = useProductBySlug(serviceId);
 
     if (productQuery.isPending) {
         return (

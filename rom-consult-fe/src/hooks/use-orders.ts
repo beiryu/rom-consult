@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { fetchOrders } from "@/api/orders";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createOrder, fetchOrders } from "@/api/orders";
 import { useAuthStore } from "@/stores/auth-store";
 
 export const orderKeys = {
@@ -13,6 +13,17 @@ export const orderKeys = {
 export const useOrders = () =>
     useQuery({
         queryKey: orderKeys.lists(),
-        queryFn: fetchOrders,
+        queryFn: () => fetchOrders(),
         enabled: Boolean(useAuthStore.getState().accessToken),
     });
+
+export const useCreateOrder = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: createOrder,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+        },
+    });
+};

@@ -13,7 +13,7 @@ export const bookingKeys = {
 export const useBookings = () =>
     useQuery({
         queryKey: bookingKeys.lists(),
-        queryFn: fetchBookings,
+        queryFn: () => fetchBookings(),
         enabled: Boolean(useAuthStore.getState().accessToken),
     });
 

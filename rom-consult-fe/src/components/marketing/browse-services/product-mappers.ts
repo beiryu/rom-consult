@@ -10,6 +10,9 @@ import {
 
 type ServiceCardItem = Pick<ServiceItem, "id" | "slug" | "categoryLabel" | "title" | "priceRange" | "features">;
 
+const isJsonObject = (value: ProductJsonValue): value is { [key: string]: ProductJsonValue } =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
+
 const asStringArray = (value: ProductJsonValue | null): string[] => {
     if (!Array.isArray(value)) {
         return [];
@@ -22,7 +25,7 @@ const asSessionMeta = (value: ProductJsonValue | null): ServiceSessionMeta[] => 
         return [];
     }
     return value
-        .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+        .filter(isJsonObject)
         .map((item, index) => ({
             id: typeof item.id === "string" ? item.id : `meta-${index + 1}`,
             label: typeof item.label === "string" ? item.label : "",
@@ -35,7 +38,7 @@ const asHowItWorks = (value: ProductJsonValue | null): ServiceHowItWorksStep[] =
         return [];
     }
     return value
-        .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+        .filter(isJsonObject)
         .map((item, index) => ({
             id: typeof item.id === "string" ? item.id : `step-${index + 1}`,
             title: typeof item.title === "string" ? item.title : "",

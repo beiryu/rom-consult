@@ -14,6 +14,7 @@ import { InputGroup } from "@/components/base/input/input-group";
 import { NativeSelect } from "@/components/base/select/select-native";
 import { TextArea } from "@/components/base/textarea/textarea";
 import { UntitledLogo } from "@/components/foundations/logo/untitledui-logo";
+import { useToastHelpers } from "@/providers/alerts-provider";
 import countries, { phoneCodeOptions } from "@/utils/countries";
 
 const HeaderCentered = () => {
@@ -39,11 +40,11 @@ const HeaderCentered = () => {
 };
 
 const ContactFormAndMap = () => {
+    const toast = useToastHelpers();
     const [selectedCountryPhone, setSelectedCountryPhone] = useState("US");
     const [privacyAccepted, setPrivacyAccepted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
 
     return (
         <section className="bg-primary py-16 md:py-24">
@@ -58,10 +59,11 @@ const ContactFormAndMap = () => {
                         onSubmit={async (e) => {
                             e.preventDefault();
                             setErrorMessage("");
-                            setSuccessMessage("");
 
                             if (!privacyAccepted) {
-                                setErrorMessage("Please accept the privacy policy to continue.");
+                                const message = "Please accept the privacy policy to continue.";
+                                setErrorMessage(message);
+                                toast.error(message, "Cannot send message");
                                 return;
                             }
 
@@ -74,7 +76,9 @@ const ContactFormAndMap = () => {
                             const message = typeof data.message === "string" ? data.message.trim() : "";
 
                             if (!firstName || !lastName || !email || !message) {
-                                setErrorMessage("Please complete all required fields before submitting.");
+                                const message = "Please complete all required fields before submitting.";
+                                setErrorMessage(message);
+                                toast.error(message, "Missing required fields");
                                 return;
                             }
 
@@ -91,11 +95,14 @@ const ContactFormAndMap = () => {
                                     message,
                                     privacyAccepted: true,
                                 });
-                                setSuccessMessage("Message sent successfully. Our team will reply within 24-48 hours.");
+                                toast.success("Message sent successfully. Our team will reply within 24-48 hours.", "Message sent");
                                 form.reset();
                                 setPrivacyAccepted(false);
-                            } catch {
-                                setErrorMessage("Unable to send your message right now. Please try again shortly.");
+                            } catch (error) {
+                                const message =
+                                    error instanceof Error ? error.message : "Unable to send your message right now. Please try again shortly.";
+                                setErrorMessage(message);
+                                toast.error(message, "Failed to send message");
                             } finally {
                                 setIsSubmitting(false);
                             }
@@ -150,7 +157,6 @@ const ContactFormAndMap = () => {
                         </div>
 
                         {errorMessage ? <p className="text-sm text-error-primary">{errorMessage}</p> : null}
-                        {successMessage ? <p className="text-sm text-success-primary">{successMessage}</p> : null}
 
                         <Button type="submit" size="xl" isDisabled={isSubmitting} isLoading={isSubmitting}>
                             Send message

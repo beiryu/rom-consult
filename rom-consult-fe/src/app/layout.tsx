@@ -8,6 +8,7 @@ import { Header } from "@/components/marketing/header-navigation/header";
 import { QueryProvider } from "@/providers/query-provider";
 import { RouteProvider } from "@/providers/router-provider";
 import { Theme } from "@/providers/theme";
+import { AlertsProvider } from "@/providers/alerts-provider";
 import "@/styles/globals.css";
 import { cx } from "@/utils/cx";
 
@@ -66,13 +67,15 @@ export default function RootLayout({
                 <RouteProvider>
                     <Theme>
                         <QueryProvider>
-                            <div className="bg-primary">
-                                <BannerCountdownBrandFullWidth />
-                                <Header />
-                                {children}
-                                <FooterLarge12 />
-                                <SitePromoModals />
-                            </div>
+                            <AlertsProvider>
+                                <div className="bg-primary">
+                                    <BannerCountdownBrandFullWidth />
+                                    <Header />
+                                    {children}
+                                    <FooterLarge12 />
+                                    <SitePromoModals />
+                                </div>
+                            </AlertsProvider>
                         </QueryProvider>
                     </Theme>
                 </RouteProvider>

@@ -14,6 +14,7 @@ import { Select } from "@/components/base/select/select";
 import { NativeSelect } from "@/components/base/select/select-native";
 import type { SelectItemType } from "@/components/base/select/select-shared";
 import { TextArea } from "@/components/base/textarea/textarea";
+import { useToastHelpers } from "@/providers/alerts-provider";
 import { cx } from "@/utils/cx";
 
 const expertiseItems: SelectItemType[] = [
@@ -74,6 +75,7 @@ const FormSection = ({ title, description, children }: { title: string; descript
 );
 
 export const ExpertConsultantApplicationForm = () => {
+    const toast = useToastHelpers();
     const [tier, setTier] = useState<TierId>("bronze");
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [expertise, setExpertise] = useState("");
@@ -83,7 +85,6 @@ export const ExpertConsultantApplicationForm = () => {
     const [timeSlots, setTimeSlots] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
 
     return (
         <div className="w-full rounded-2xl border border-secondary bg-primary p-6 shadow-lg md:p-8 lg:p-10">
@@ -92,10 +93,11 @@ export const ExpertConsultantApplicationForm = () => {
                 onSubmit={async (e) => {
                     e.preventDefault();
                     setErrorMessage("");
-                    setSuccessMessage("");
 
                     if (!agreedToTerms) {
-                        setErrorMessage("Please accept the Terms of Service and Privacy Policy.");
+                        const message = "Please accept the Terms of Service and Privacy Policy.";
+                        setErrorMessage(message);
+                        toast.error(message, "Cannot submit yet");
                         return;
                     }
 
@@ -110,7 +112,9 @@ export const ExpertConsultantApplicationForm = () => {
                     const motivation = typeof data.motivation === "string" ? data.motivation.trim() : "";
 
                     if (!fullName || !email || !bio || !motivation || !expertise || !experience || !daysAvailable || !timezone || !timeSlots) {
-                        setErrorMessage("Please complete all required fields before submitting.");
+                        const message = "Please complete all required fields before submitting.";
+                        setErrorMessage(message);
+                        toast.error(message, "Missing required fields");
                         return;
                     }
 
@@ -132,7 +136,7 @@ export const ExpertConsultantApplicationForm = () => {
                             motivation,
                             agreedToTerms: true,
                         });
-                        setSuccessMessage("Application submitted successfully. We will review your profile within 2-3 business days.");
+                        toast.success("Application submitted successfully. We will review your profile within 2-3 business days.", "Application submitted");
                         form.reset();
                         setTier("bronze");
                         setAgreedToTerms(false);
@@ -141,8 +145,11 @@ export const ExpertConsultantApplicationForm = () => {
                         setDaysAvailable("");
                         setTimezone("");
                         setTimeSlots("");
-                    } catch {
-                        setErrorMessage("Unable to submit application right now. Please try again in a moment.");
+                    } catch (error) {
+                        const message =
+                            error instanceof Error ? error.message : "Unable to submit application right now. Please try again in a moment.";
+                        setErrorMessage(message);
+                        toast.error(message, "Submission failed");
                     } finally {
                         setIsSubmitting(false);
                     }
@@ -334,7 +341,6 @@ export const ExpertConsultantApplicationForm = () => {
                     </div>
 
                     {errorMessage ? <p className="text-sm text-error-primary">{errorMessage}</p> : null}
-                    {successMessage ? <p className="text-sm text-success-primary">{successMessage}</p> : null}
 
                     <Button type="submit" size="xl" iconLeading={Send01} className="w-full" isDisabled={!agreedToTerms || isSubmitting} isLoading={isSubmitting}>
                         Submit Application

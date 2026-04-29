@@ -118,9 +118,15 @@ export class UserService implements IUserService {
     return user;
   }
 
-  async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
     if (!file) {
-      throw new HttpException("user.error.avatarMissing", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "user.error.avatarMissing",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const safeOriginalName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");

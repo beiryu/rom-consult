@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { CalendarCheck01, CreditCard02, Globe01, InfoCircle, Lock01, ShieldTick } from "@untitledui/icons";
 import { useRouter } from "next/navigation";
+import { createBooking } from "@/api/bookings";
+import { syncCart } from "@/api/cart";
+import { createOrder } from "@/api/orders";
 import { Badge } from "@/components/base/badges/badges";
 import { Button } from "@/components/base/buttons/button";
 import { Checkbox } from "@/components/base/checkbox/checkbox";
@@ -11,8 +14,8 @@ import { Input } from "@/components/base/input/input";
 import { Select } from "@/components/base/select/select";
 import { fetchProductById } from "@/api/products";
 import { useBookingCartStore } from "@/stores/booking-cart-store";
-import { useOrdersBookingsStore } from "@/stores/orders-bookings-store";
-import { formatCurrency, getPlatformById, getTierById, suggestedSlot } from "./booking-options";
+import { useAuthStore } from "@/stores/auth-store";
+import { formatCurrency, getPlatformById, getTierById } from "./booking-options";
 
 const countryOptions = [
     { id: "us", label: "United States" },
@@ -24,13 +27,13 @@ const countryOptions = [
 
 export const ServiceBookingPaymentPage = () => {
     const router = useRouter();
+    const user = useAuthStore((state) => state.user);
     const items = useBookingCartStore((state) => state.items);
     const clearCart = useBookingCartStore((state) => state.clearCart);
-    const addBooking = useOrdersBookingsStore((state) => state.addBooking);
-    const addOrder = useOrdersBookingsStore((state) => state.addOrder);
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [scheduledAt, setScheduledAt] = useState("");
     const [streetAddress, setStreetAddress] = useState("");
     const [city, setCity] = useState("");
     const [stateRegion, setStateRegion] = useState("");
@@ -38,6 +41,8 @@ export const ServiceBookingPaymentPage = () => {
     const [country, setCountry] = useState<string | null>(null);
     const [isRefundAccepted, setIsRefundAccepted] = useState(false);
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const productQueries = useQueries({
         queries: items.map((item) => ({
             queryKey: ["products", "detailById", item.serviceId],
@@ -82,30 +87,66 @@ export const ServiceBookingPaymentPage = () => {
     const subtotal = useMemo(() => lineItems.reduce((sum, lineItem) => sum + lineItem.subtotal, 0), [lineItems]);
     const total = subtotal;
     const hasItems = lineItems.length > 0;
+    const isScheduledDateInFuture = useMemo(() => {
+        if (!scheduledAt) {
+            return false;
+        }
 
-    const isFormValid = hasItems && fullName.trim().length > 0 && email.trim().length > 0 && Boolean(country) && isRefundAccepted && isTermsAccepted;
+        const selectedDate = new Date(`${scheduledAt}T00:00:00`);
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const handleCompleteSecureBooking = () => {
+        return selectedDate.getTime() > todayStart.getTime();
+    }, [scheduledAt]);
+
+    const isFormValid =
+        hasItems &&
+        fullName.trim().length > 0 &&
+        email.trim().length > 0 &&
+        Boolean(country) &&
+        Boolean(scheduledAt) &&
+        isScheduledDateInFuture &&
+        isRefundAccepted &&
+        isTermsAccepted;
+
+    const handleCompleteSecureBooking = async () => {
         if (!isFormValid) {
             return;
         }
 
-        lineItems.forEach((lineItem) => {
-            addBooking({
-                service: `${lineItem.service.title} (${lineItem.tier.title})`,
-                dateTime: suggestedSlot,
-                status: "scheduled",
+        setIsSubmitting(true);
+        setSubmitError(null);
+
+        try {
+            await syncCart(
+                items.map((item) => ({
+                    productId: item.serviceId,
+                    quantity: item.quantity,
+                })),
+            );
+
+            await createOrder({
+                notes: `${fullName.trim()} | ${email.trim()}`,
             });
-        });
 
-        addOrder({
-            item: `${lineItems.length} consulting item(s)`,
-            total: formatCurrency(total),
-            status: "pending",
-        });
+            const scheduledAtIso = new Date(`${scheduledAt}T09:00:00`).toISOString();
+            await Promise.all(
+                items.map((item) =>
+                    createBooking({
+                        productId: item.serviceId,
+                        platform: item.platformId,
+                        scheduledAt: scheduledAtIso,
+                    }),
+                ),
+            );
 
-        clearCart();
-        router.push("/dashboard/orders");
+            clearCart();
+            router.push("/dashboard/orders");
+        } catch {
+            setSubmitError("Unable to complete booking right now. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -173,6 +214,15 @@ export const ServiceBookingPaymentPage = () => {
                                     <h2 className="text-lg font-semibold text-primary">Your Information</h2>
                                 </div>
                                 <div className="space-y-4 px-6 py-5">
+                                    {!user ? (
+                                        <div className="space-y-4 rounded-xl border border-secondary bg-secondary p-4">
+                                            <p className="text-sm text-tertiary">Please log in to continue with secure payment and booking.</p>
+                                            <Button color="primary" size="md" href="/login">
+                                                Login to continue
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <>
                                     <Input label="Full Name" isRequired value={fullName} onChange={setFullName} placeholder="Enter your full name" />
                                     <Input
                                         label="Email Address"
@@ -184,6 +234,14 @@ export const ServiceBookingPaymentPage = () => {
                                         hint="We’ll send your booking confirmation to this email"
                                     />
                                     <Input label="Phone Number (Optional)" value={phone} onChange={setPhone} placeholder="+1 (555) 123-4567" />
+                                    <Input
+                                        label="Scheduled Date"
+                                        isRequired
+                                        type="date"
+                                        value={scheduledAt}
+                                        onChange={setScheduledAt}
+                                        hint={!scheduledAt || isScheduledDateInFuture ? undefined : "Please select a future date."}
+                                    />
 
                                     <div className="border-t border-secondary pt-4">
                                         <h3 className="text-lg font-semibold text-primary">Billing Address (Optional)</h3>
@@ -251,8 +309,10 @@ export const ServiceBookingPaymentPage = () => {
 
                                     <div className="flex items-center justify-center gap-2 rounded-xl border border-secondary bg-secondary p-3 text-sm text-tertiary">
                                         <ShieldTick className="size-4 text-fg-brand-secondary" aria-hidden="true" />
-                                        No account required! Provide your details and we’ll send everything to your email.
+                                        Your account secures booking history and order tracking.
                                     </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </section>
@@ -282,11 +342,12 @@ export const ServiceBookingPaymentPage = () => {
                                         color="primary"
                                         size="lg"
                                         iconLeading={Lock01}
-                                        isDisabled={!isFormValid}
+                                        isDisabled={!user || !isFormValid || isSubmitting}
                                         onClick={handleCompleteSecureBooking}
                                     >
-                                        Complete Secure Booking
+                                        {isSubmitting ? "Processing..." : "Complete Secure Booking"}
                                     </Button>
+                                    {submitError ? <p className="text-sm text-error-primary">{submitError}</p> : null}
 
                                     <p className="text-center text-sm text-tertiary">- OR PAY WITH -</p>
 

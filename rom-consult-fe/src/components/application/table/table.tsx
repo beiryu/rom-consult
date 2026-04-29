@@ -257,6 +257,7 @@ TableRow.displayName = "TableRow";
 interface TableCellProps extends AriaCellProps, Omit<TdHTMLAttributes<HTMLTableCellElement>, "children" | "className" | "style" | "id"> {
     ref?: Ref<HTMLTableCellElement>;
     size?: "sm" | "md";
+    isRowHeader?: boolean;
 }
 
 const TableCell = ({ className, children, size: sizeProp, ...props }: TableCellProps) => {

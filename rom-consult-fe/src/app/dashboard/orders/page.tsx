@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { mapApiOrderToRow } from "@/api/orders";
 import { Badge } from "@/components/base/badges/badges";
 import { Button } from "@/components/base/buttons/button";
-import { formatStatusLabel } from "@/components/application/dashboard/dashboard-table-data";
+import { formatStatusLabel, toNewestFirst } from "@/components/application/dashboard/dashboard-table-data";
 import { Table, TableCard } from "@/components/application/table/table";
+import { useOrders } from "@/hooks/use-orders";
 import { useAuthStore } from "@/stores/auth-store";
-import { useOrdersBookingsStore } from "@/stores/orders-bookings-store";
 
 const statusColor = {
     paid: "success",
@@ -15,17 +16,9 @@ const statusColor = {
 } as const;
 
 const DashboardOrdersPage = () => {
-    const [isMounted, setIsMounted] = useState(false);
     const user = useAuthStore((state) => state.user);
-    const orders = useOrdersBookingsStore((state) => state.orders);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    if (!isMounted) {
-        return null;
-    }
+    const { data, isLoading } = useOrders();
+    const orders = useMemo(() => toNewestFirst((data?.items ?? []).map(mapApiOrderToRow)), [data?.items]);
 
     if (!user) {
         return (
@@ -54,14 +47,18 @@ const DashboardOrdersPage = () => {
                         }
                     />
 
-                    {orders.length === 0 ? (
+                    {isLoading ? (
+                        <div className="px-6 py-10 text-center">
+                            <p className="text-sm text-tertiary">Loading orders...</p>
+                        </div>
+                    ) : orders.length === 0 ? (
                         <div className="px-6 py-10 text-center">
                             <p className="text-sm text-tertiary">No orders found yet.</p>
                         </div>
                     ) : (
                         <Table aria-label="Orders table">
                             <Table.Header>
-                                <Table.Head>Order Ref</Table.Head>
+                                <Table.Head isRowHeader>Order Ref</Table.Head>
                                 <Table.Head>Date</Table.Head>
                                 <Table.Head>Item</Table.Head>
                                 <Table.Head>Total</Table.Head>
@@ -70,7 +67,9 @@ const DashboardOrdersPage = () => {
                             <Table.Body>
                                 {orders.map((order) => (
                                     <Table.Row key={order.id} id={order.id}>
-                                        <Table.Cell className="font-medium text-primary">{order.orderRef}</Table.Cell>
+                                        <Table.Cell className="font-medium text-primary">
+                                            {order.orderRef}
+                                        </Table.Cell>
                                         <Table.Cell>{order.date}</Table.Cell>
                                         <Table.Cell>{order.item}</Table.Cell>
                                         <Table.Cell>{order.total}</Table.Cell>

@@ -16,7 +16,7 @@ const iconMap = {
     success: CheckCircle,
 };
 
-interface AlertFloatingProps {
+export interface AlertFloatingProps {
     /**
      * The title of the alert.
      */
@@ -91,7 +91,7 @@ export const AlertFloating = ({ title, description, confirmLabel, onClose, onCon
     );
 };
 
-interface AlertFullWidthProps {
+export interface AlertFullWidthProps {
     /**
      * The title of the alert.
      */

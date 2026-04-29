@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { LogOut01 } from "@untitledui/icons";
 import { useRouter } from "next/navigation";
+import { mapApiBookingToRow } from "@/api/bookings";
+import { mapApiOrderToRow } from "@/api/orders";
+import { fetchProductById } from "@/api/products";
 import { Badge } from "@/components/base/badges/badges";
 import { Button } from "@/components/base/buttons/button";
 import {
@@ -18,10 +22,11 @@ import { DashboardEmptyPanel } from "@/components/application/dashboard/dashboar
 import { DashboardHeroHeader } from "@/components/application/dashboard/dashboard-hero-header";
 import { DashboardQuickActionsCard } from "@/components/application/dashboard/dashboard-quick-actions-card";
 import { DashboardStatCard } from "@/components/application/dashboard/dashboard-stat-card";
-import { formatStatusLabel } from "@/components/application/dashboard/dashboard-table-data";
+import { formatStatusLabel, toNewestFirst } from "@/components/application/dashboard/dashboard-table-data";
 import { Table } from "@/components/application/table/table";
+import { useBookings } from "@/hooks/use-bookings";
+import { useOrders } from "@/hooks/use-orders";
 import { useAuthStore } from "@/stores/auth-store";
-import { useOrdersBookingsStore } from "@/stores/orders-bookings-store";
 
 const bookingStatusColor = {
     scheduled: "brand",
@@ -40,8 +45,34 @@ const DashboardPage = () => {
     const [isMounted, setIsMounted] = useState(false);
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
-    const bookings = useOrdersBookingsStore((state) => state.bookings);
-    const orders = useOrdersBookingsStore((state) => state.orders);
+    const { data: bookingsData } = useBookings();
+    const { data: ordersData } = useOrders();
+    const bookingItems = bookingsData?.items ?? [];
+    const orderItems = ordersData?.items ?? [];
+    const productQueries = useQueries({
+        queries: bookingItems.map((booking) => ({
+            queryKey: ["products", "detailById", booking.productId],
+            queryFn: () => fetchProductById(booking.productId),
+            enabled: Boolean(booking.productId),
+        })),
+    });
+    const productNameById = useMemo(
+        () =>
+            bookingItems.reduce<Record<string, string>>((acc, booking, index) => {
+                const product = productQueries[index]?.data;
+                if (product) {
+                    acc[booking.productId] = product.name;
+                }
+                return acc;
+            }, {}),
+        [bookingItems, productQueries],
+    );
+    const bookings = useMemo(
+        () =>
+            toNewestFirst(bookingItems.map((booking) => mapApiBookingToRow(booking, productNameById[booking.productId]))),
+        [bookingItems, productNameById],
+    );
+    const orders = useMemo(() => toNewestFirst(orderItems.map(mapApiOrderToRow)), [orderItems]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -153,7 +184,7 @@ const DashboardPage = () => {
                         ) : (
                             <Table aria-label="Recent orders" size="sm">
                                 <Table.Header>
-                                    <Table.Head>Order Ref</Table.Head>
+                                    <Table.Head isRowHeader>Order Ref</Table.Head>
                                     <Table.Head>Date</Table.Head>
                                     <Table.Head>Status</Table.Head>
                                 </Table.Header>
@@ -188,13 +219,11 @@ const DashboardPage = () => {
                                 icon={recentBookingIcon}
                                 title="No bookings yet"
                                 description="Book your first consulting session!"
-                                actionLabel="Browse Services"
-                                actionHref="/browse-services"
                             />
                         ) : (
                             <Table aria-label="Recent bookings" size="sm">
                                 <Table.Header>
-                                    <Table.Head>Booking Ref</Table.Head>
+                                    <Table.Head isRowHeader>Booking Ref</Table.Head>
                                     <Table.Head>Service</Table.Head>
                                     <Table.Head>Status</Table.Head>
                                 </Table.Header>
