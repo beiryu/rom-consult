@@ -14,5 +14,5 @@ export const useOrders = () =>
     useQuery({
         queryKey: orderKeys.lists(),
         queryFn: fetchOrders,
-        enabled: Boolean(useAuthStore.getState().token),
+        enabled: Boolean(useAuthStore.getState().accessToken),
     });

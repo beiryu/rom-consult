@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { HelpCircle, Link01, Send01 } from "@untitledui/icons";
 import { Checkbox as AriaCheckbox } from "react-aria-components";
+import { submitConsultantApplication } from "@/api/consultant-applications";
 import { Button } from "@/components/base/buttons/button";
 import { CheckboxBase } from "@/components/base/checkbox/checkbox";
 import { Form } from "@/components/base/form/form";
@@ -75,13 +76,76 @@ const FormSection = ({ title, description, children }: { title: string; descript
 export const ExpertConsultantApplicationForm = () => {
     const [tier, setTier] = useState<TierId>("bronze");
     const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [expertise, setExpertise] = useState("");
+    const [experience, setExperience] = useState("");
+    const [daysAvailable, setDaysAvailable] = useState("");
+    const [timezone, setTimezone] = useState("");
+    const [timeSlots, setTimeSlots] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     return (
         <div className="w-full rounded-2xl border border-secondary bg-primary p-6 shadow-lg md:p-8 lg:p-10">
             <Form
                 className="flex flex-col gap-10"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                     e.preventDefault();
+                    setErrorMessage("");
+                    setSuccessMessage("");
+
+                    if (!agreedToTerms) {
+                        setErrorMessage("Please accept the Terms of Service and Privacy Policy.");
+                        return;
+                    }
+
+                    const form = e.currentTarget;
+                    const data = Object.fromEntries(new FormData(form));
+                    const fullName = typeof data.fullName === "string" ? data.fullName.trim() : "";
+                    const email = typeof data.email === "string" ? data.email.trim() : "";
+                    const phone = typeof data.phone === "string" ? data.phone.trim() : "";
+                    const bio = typeof data.bio === "string" ? data.bio.trim() : "";
+                    const linkedin = typeof data.linkedin === "string" ? data.linkedin.trim() : "";
+                    const website = typeof data.website === "string" ? data.website.trim() : "";
+                    const motivation = typeof data.motivation === "string" ? data.motivation.trim() : "";
+
+                    if (!fullName || !email || !bio || !motivation || !expertise || !experience || !daysAvailable || !timezone || !timeSlots) {
+                        setErrorMessage("Please complete all required fields before submitting.");
+                        return;
+                    }
+
+                    setIsSubmitting(true);
+                    try {
+                        await submitConsultantApplication({
+                            fullName,
+                            email,
+                            phone: phone || undefined,
+                            expertise,
+                            experience,
+                            bio,
+                            tier: tier.toUpperCase() as "BRONZE" | "SILVER" | "GOLD",
+                            daysAvailable,
+                            timezone,
+                            timeSlots,
+                            linkedin: linkedin || undefined,
+                            website: website || undefined,
+                            motivation,
+                            agreedToTerms: true,
+                        });
+                        setSuccessMessage("Application submitted successfully. We will review your profile within 2-3 business days.");
+                        form.reset();
+                        setTier("bronze");
+                        setAgreedToTerms(false);
+                        setExpertise("");
+                        setExperience("");
+                        setDaysAvailable("");
+                        setTimezone("");
+                        setTimeSlots("");
+                    } catch {
+                        setErrorMessage("Unable to submit application right now. Please try again in a moment.");
+                    } finally {
+                        setIsSubmitting(false);
+                    }
                 }}
             >
                 <FormSection title="Personal Information" description="Please provide your contact details so we can review your application.">
@@ -113,10 +177,26 @@ export const ExpertConsultantApplicationForm = () => {
                     description="Share your core expertise and experience so we can match you with the right projects."
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
-                        <Select name="expertise" label="Area of Expertise" placeholder="Select your expertise" items={expertiseItems} isRequired>
+                        <Select
+                            name="expertise"
+                            label="Area of Expertise"
+                            placeholder="Select your expertise"
+                            items={expertiseItems}
+                            selectedKey={expertise || null}
+                            onSelectionChange={(key) => setExpertise(String(key ?? ""))}
+                            isRequired
+                        >
                             {(item) => <Select.Item id={item.id} label={item.label} />}
                         </Select>
-                        <Select name="experience" label="Years of Experience" placeholder="Select experience" items={experienceItems} isRequired>
+                        <Select
+                            name="experience"
+                            label="Years of Experience"
+                            placeholder="Select experience"
+                            items={experienceItems}
+                            selectedKey={experience || null}
+                            onSelectionChange={(key) => setExperience(String(key ?? ""))}
+                            isRequired
+                        >
                             {(item) => <Select.Item id={item.id} label={item.label} />}
                         </Select>
                     </div>
@@ -158,13 +238,37 @@ export const ExpertConsultantApplicationForm = () => {
                         <input type="hidden" name="tier" value={tier} />
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
-                        <Select name="daysAvailable" label="Days Available" placeholder="Select availability" items={availabilityItems} isRequired>
+                        <Select
+                            name="daysAvailable"
+                            label="Days Available"
+                            placeholder="Select availability"
+                            items={availabilityItems}
+                            selectedKey={daysAvailable || null}
+                            onSelectionChange={(key) => setDaysAvailable(String(key ?? ""))}
+                            isRequired
+                        >
                             {(item) => <Select.Item id={item.id} label={item.label} />}
                         </Select>
-                        <Select name="timezone" label="Timezone" placeholder="Select timezone" items={timezoneItems} isRequired>
+                        <Select
+                            name="timezone"
+                            label="Timezone"
+                            placeholder="Select timezone"
+                            items={timezoneItems}
+                            selectedKey={timezone || null}
+                            onSelectionChange={(key) => setTimezone(String(key ?? ""))}
+                            isRequired
+                        >
                             {(item) => <Select.Item id={item.id} label={item.label} />}
                         </Select>
-                        <Select name="timeSlots" label="Preferred Time Slots" placeholder="Select time preference" items={timeSlotItems} isRequired>
+                        <Select
+                            name="timeSlots"
+                            label="Preferred Time Slots"
+                            placeholder="Select time preference"
+                            items={timeSlotItems}
+                            selectedKey={timeSlots || null}
+                            onSelectionChange={(key) => setTimeSlots(String(key ?? ""))}
+                            isRequired
+                        >
                             {(item) => <Select.Item id={item.id} label={item.label} />}
                         </Select>
                     </div>
@@ -229,7 +333,10 @@ export const ExpertConsultantApplicationForm = () => {
                         </p>
                     </div>
 
-                    <Button type="submit" size="xl" iconLeading={Send01} className="w-full" isDisabled={!agreedToTerms}>
+                    {errorMessage ? <p className="text-sm text-error-primary">{errorMessage}</p> : null}
+                    {successMessage ? <p className="text-sm text-success-primary">{successMessage}</p> : null}
+
+                    <Button type="submit" size="xl" iconLeading={Send01} className="w-full" isDisabled={!agreedToTerms || isSubmitting} isLoading={isSubmitting}>
                         Submit Application
                     </Button>
                 </div>

@@ -18,7 +18,7 @@ import { ResponseModule } from "./response/response.module";
       load: configs,
       isGlobal: true,
       cache: true,
-      envFilePath: [".env"],
+      envFilePath: [".env.local", ".env"],
       expandVariables: true,
     }),
 

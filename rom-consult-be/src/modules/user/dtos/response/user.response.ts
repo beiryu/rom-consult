@@ -61,6 +61,26 @@ export class UserResponseDto implements Partial<User> {
   isVerified: boolean;
 
   @ApiProperty({
+    example: faker.phone.number(),
+    required: false,
+    nullable: true,
+  })
+  @Expose()
+  @IsString()
+  @IsOptional()
+  phone: string | null;
+
+  @ApiProperty({
+    example: faker.image.avatar(),
+    required: false,
+    nullable: true,
+  })
+  @Expose()
+  @IsString()
+  @IsOptional()
+  avatar: string | null;
+
+  @ApiProperty({
     example: faker.date.past().toISOString(),
   })
   @Expose()

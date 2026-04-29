@@ -13,19 +13,21 @@ export const useUserProfile = () =>
     useQuery({
         queryKey: userKeys.profile(),
         queryFn: fetchUserProfile,
-        enabled: Boolean(useAuthStore.getState().token),
+        enabled: Boolean(useAuthStore.getState().accessToken),
     });
 
 export const useUpdateProfile = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ userId, payload }: { userId: string; payload: UpdateUserProfilePayload }) =>
-            updateUserProfile(userId, payload),
+        mutationFn: (payload: UpdateUserProfilePayload) => updateUserProfile(payload),
         onSuccess: (data) => {
             useAuthStore.getState().updateUser({
-                fullName: data.fullName,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 email: data.email,
+                phone: data.phone,
+                avatar: data.avatar,
             });
             queryClient.invalidateQueries({ queryKey: userKeys.profile() });
         },

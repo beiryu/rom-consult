@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { UpdateUserProfilePayload } from "@/api/users";
+import { useUpdateProfile } from "@/hooks/use-user-profile";
 import { Button } from "@/components/base/buttons/button";
 import { PersonalInfoForm } from "@/components/application/profile/personal-info-form";
-import type { AuthUser } from "@/stores/auth-store";
 import { useAuthStore } from "@/stores/auth-store";
 
 const DashboardProfilePage = () => {
     const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
     const user = useAuthStore((state) => state.user);
-    const updateUser = useAuthStore((state) => state.updateUser);
+    const { mutate: updateProfile, isPending } = useUpdateProfile();
 
     useEffect(() => {
         setIsMounted(true);
@@ -33,15 +35,19 @@ const DashboardProfilePage = () => {
         );
     }
 
-    const handleSave = (payload: Pick<AuthUser, "email" | "fullName" | "profilePhotoDataUrl">) => {
-        updateUser(payload);
-        router.push("/dashboard");
+    const handleSave = (payload: UpdateUserProfilePayload) => {
+        setErrorMessage("");
+        updateProfile(payload, {
+            onSuccess: () => router.push("/dashboard"),
+            onError: () => setErrorMessage("Failed to update profile."),
+        });
     };
 
     return (
         <main className="bg-secondary py-10 md:py-14">
             <div className="mx-auto w-full max-w-container px-4 md:px-8">
-                <PersonalInfoForm user={user} onCancel={() => router.push("/dashboard")} onSave={handleSave} />
+                <PersonalInfoForm user={user} onCancel={() => router.push("/dashboard")} onSave={handleSave} isSaving={isPending} />
+                {errorMessage ? <p className="mt-4 text-sm text-error-primary">{errorMessage}</p> : null}
             </div>
         </main>
     );

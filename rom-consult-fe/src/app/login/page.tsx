@@ -3,6 +3,8 @@
 import { Building07, CheckCircle, Lock01, LogIn01, Mail01, ShieldTick, UserPlus02 } from "@untitledui/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { loginUser } from "@/api/auth";
 import { ContentDivider } from "@/components/application/content-divider/content-divider";
 import { Button } from "@/components/base/buttons/button";
 import { Form } from "@/components/base/form/form";
@@ -28,6 +30,8 @@ const PROVIDERS = [
 export default function LoginPage() {
     const router = useRouter();
     const loginSuccess = useAuthStore((state) => state.loginSuccess);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     return (
         <main className="bg-primary px-4 py-10 sm:px-6 sm:py-16">
@@ -80,18 +84,34 @@ export default function LoginPage() {
                             className="flex flex-col gap-6"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                const data = Object.fromEntries(new FormData(e.currentTarget));
-                                const email = typeof data.email === "string" ? data.email : "";
+                                const form = e.currentTarget;
+                                const submit = async () => {
+                                    setErrorMessage("");
+                                    setIsLoading(true);
+                                    try {
+                                        const data = Object.fromEntries(new FormData(form));
+                                        const email = typeof data.email === "string" ? data.email.trim() : "";
+                                        const password = typeof data.password === "string" ? data.password : "";
 
-                                if (!email) {
-                                    return;
-                                }
+                                        if (!email || !password) {
+                                            setErrorMessage("Email and password are required.");
+                                            return;
+                                        }
 
-                                loginSuccess({
-                                    email,
-                                    token: `mock-token-${email}`,
-                                });
-                                router.push("/dashboard");
+                                        const result = await loginUser({ email, password });
+                                        loginSuccess({
+                                            accessToken: result.accessToken,
+                                            refreshToken: result.refreshToken,
+                                            user: result.user,
+                                        });
+                                        router.push("/dashboard");
+                                    } catch {
+                                        setErrorMessage("Invalid credentials.");
+                                    } finally {
+                                        setIsLoading(false);
+                                    }
+                                };
+                                void submit();
                             }}
                         >
                             <div className="flex flex-col gap-2">
@@ -131,9 +151,16 @@ export default function LoginPage() {
                                 color="primary"
                                 iconLeading={LogIn01}
                                 className="w-full"
+                                isLoading={isLoading}
+                                isDisabled={isLoading}
                             >
                                 Sign in
                             </Button>
+                            {errorMessage ? (
+                                <p className="text-sm text-error-primary" role="alert">
+                                    {errorMessage}
+                                </p>
+                            ) : null}
                         </Form>
 
                         <div className="mt-6 flex flex-col gap-6">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { CalendarCheck01, CreditCard02, Globe01, InfoCircle, Lock01, ShieldTick } from "@untitledui/icons";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/base/badges/badges";
@@ -8,10 +9,10 @@ import { Button } from "@/components/base/buttons/button";
 import { Checkbox } from "@/components/base/checkbox/checkbox";
 import { Input } from "@/components/base/input/input";
 import { Select } from "@/components/base/select/select";
+import { fetchProductById } from "@/api/products";
 import { useBookingCartStore } from "@/stores/booking-cart-store";
 import { useOrdersBookingsStore } from "@/stores/orders-bookings-store";
 import { formatCurrency, getPlatformById, getTierById, suggestedSlot } from "./booking-options";
-import { getServiceById } from "./services-data";
 
 const countryOptions = [
     { id: "us", label: "United States" },
@@ -37,29 +38,46 @@ export const ServiceBookingPaymentPage = () => {
     const [country, setCountry] = useState<string | null>(null);
     const [isRefundAccepted, setIsRefundAccepted] = useState(false);
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+    const productQueries = useQueries({
+        queries: items.map((item) => ({
+            queryKey: ["products", "detailById", item.serviceId],
+            queryFn: () => fetchProductById(item.serviceId),
+            enabled: Boolean(item.serviceId),
+        })),
+    });
+    const productById = useMemo(
+        () =>
+            items.reduce<Record<string, string>>((acc, item, index) => {
+                const product = productQueries[index]?.data;
+                if (product) {
+                    acc[item.serviceId] = product.name;
+                }
+                return acc;
+            }, {}),
+        [items, productQueries],
+    );
 
     const lineItems = useMemo(
         () =>
             items
                 .map((item) => {
-                    const service = getServiceById(item.serviceId);
-                    if (!service) {
-                        return null;
-                    }
-
                     const tier = getTierById(item.tierId);
                     const platform = getPlatformById(item.platformId);
+                    const serviceTitle = productById[item.serviceId] ?? "Service";
 
                     return {
-                        service,
+                        service: {
+                            id: item.serviceId,
+                            title: serviceTitle,
+                        },
                         tier,
                         platform,
                         quantity: item.quantity,
                         subtotal: tier.rate * item.quantity,
                     };
                 })
-                .filter((item) => item !== null),
-        [items],
+                .filter(Boolean),
+        [items, productById],
     );
     const subtotal = useMemo(() => lineItems.reduce((sum, lineItem) => sum + lineItem.subtotal, 0), [lineItems]);
     const total = subtotal;

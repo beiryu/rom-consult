@@ -3,6 +3,7 @@ import { HttpStatus, Injectable, HttpException } from "@nestjs/common";
 import { DatabaseService } from "src/common/database/services/database.service";
 import { HelperEncryptionService } from "src/common/helper/services/helper.encryption.service";
 import { ApiGenericResponseDto } from "src/common/response/dtos/response.generic.dto";
+import { SupabaseStorageService } from "src/common/storage/services/supabase.storage.service";
 
 import { UserUpdateDto } from "../dtos/request/user.update.request";
 import { UserBanDto } from "../dtos/request/user.ban.request";
@@ -18,6 +19,7 @@ export class UserService implements IUserService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly helperEncryptionService: HelperEncryptionService,
+    private readonly storageService: SupabaseStorageService,
   ) {}
 
   async updateUser(
@@ -114,6 +116,24 @@ export class UserService implements IUserService {
       throw new HttpException("user.error.userNotFound", HttpStatus.NOT_FOUND);
     }
     return user;
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
+    if (!file) {
+      throw new HttpException("user.error.avatarMissing", HttpStatus.BAD_REQUEST);
+    }
+
+    const safeOriginalName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const key = `user-avatars/${userId}/${Date.now()}_${safeOriginalName}`;
+    await this.storageService.uploadObject(key, file.buffer, file.mimetype);
+    const avatarUrl = this.storageService.getPublicUrl(key);
+
+    await this.databaseService.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+    });
+
+    return avatarUrl;
   }
 
   async banUser(

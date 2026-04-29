@@ -14,6 +14,7 @@ import {
     Send01,
     Ticket01,
 } from "@untitledui/icons";
+import { lookupSupportTicket, submitSupportTicket } from "@/api/support-tickets";
 import { BadgeGroup } from "@/components/base/badges/badge-groups";
 import { Button } from "@/components/base/buttons/button";
 import { Form } from "@/components/base/form/form";
@@ -46,7 +47,13 @@ declare global {
 
 export const SupportScreen = () => {
     const [ticketMessage, setTicketMessage] = useState("");
+    const [category, setCategory] = useState("");
     const [messageError, setMessageError] = useState("");
+    const [submitError, setSubmitError] = useState("");
+    const [submitSuccess, setSubmitSuccess] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [lookupError, setLookupError] = useState("");
+    const [lookupResult, setLookupResult] = useState<null | { ticketId: string; status: string }>(null);
 
     const ticketMessageHint = useMemo(() => {
         if (messageError) {
@@ -132,16 +139,58 @@ export const SupportScreen = () => {
 
                                 <Form
                                     className="mt-8 flex flex-col gap-6"
-                                    onSubmit={(e) => {
+                                    onSubmit={async (e) => {
                                         e.preventDefault();
+                                        setSubmitError("");
+                                        setSubmitSuccess("");
+
                                         if (ticketMessage.trim().length < 20) {
                                             setMessageError("Message must be at least 20 characters.");
                                             return;
                                         }
 
+                                        if (!category) {
+                                            setSubmitError("Please select a category before submitting your ticket.");
+                                            return;
+                                        }
+
                                         setMessageError("");
-                                        const data = Object.fromEntries(new FormData(e.currentTarget));
-                                        console.log("Support ticket submitted:", data);
+                                        const form = e.currentTarget;
+                                        const data = Object.fromEntries(new FormData(form));
+                                        const fullName = typeof data.fullName === "string" ? data.fullName.trim() : "";
+                                        const email = typeof data.email === "string" ? data.email.trim() : "";
+                                        const bookingId = typeof data.bookingId === "string" ? data.bookingId.trim() : "";
+                                        const consultantId = typeof data.consultantId === "string" ? data.consultantId.trim() : "";
+                                        const subject = typeof data.subject === "string" ? data.subject.trim() : "";
+
+                                        if (!fullName || !email || !subject) {
+                                            setSubmitError("Please complete all required fields before submitting.");
+                                            return;
+                                        }
+
+                                        setIsSubmitting(true);
+                                        try {
+                                            const ticket = await submitSupportTicket({
+                                                fullName,
+                                                email,
+                                                bookingId: bookingId || undefined,
+                                                consultantId: consultantId || undefined,
+                                                category: category as "technical" | "billing" | "account" | "service" | "other",
+                                                subject,
+                                                message: ticketMessage.trim(),
+                                            });
+                                            setSubmitSuccess(
+                                                `Ticket submitted successfully. Your Ticket ID is ${ticket.publicReference}.`,
+                                            );
+                                            form.reset();
+                                            setTicketMessage("");
+                                            setCategory("");
+                                            setLookupResult(null);
+                                        } catch {
+                                            setSubmitError("Unable to submit your ticket right now. Please try again shortly.");
+                                        } finally {
+                                            setIsSubmitting(false);
+                                        }
                                     }}
                                 >
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -174,7 +223,16 @@ export const SupportScreen = () => {
                                         </p>
                                     </div>
 
-                                    <Select name="category" label="Category" placeholder="Select a category" items={categoryItems} size="lg" isRequired>
+                                    <Select
+                                        name="category"
+                                        label="Category"
+                                        placeholder="Select a category"
+                                        items={categoryItems}
+                                        size="lg"
+                                        selectedKey={category || null}
+                                        onSelectionChange={(key) => setCategory(String(key ?? ""))}
+                                        isRequired
+                                    >
                                         {(item) => <Select.Item id={item.id} label={item.label} />}
                                     </Select>
 
@@ -197,7 +255,10 @@ export const SupportScreen = () => {
                                         isRequired
                                     />
 
-                                    <Button type="submit" size="xl" iconLeading={Send01} className="w-full">
+                                    {submitError ? <p className="text-sm text-error-primary">{submitError}</p> : null}
+                                    {submitSuccess ? <p className="text-sm text-success-primary">{submitSuccess}</p> : null}
+
+                                    <Button type="submit" size="xl" iconLeading={Send01} className="w-full" isDisabled={isSubmitting} isLoading={isSubmitting}>
                                         Submit Ticket
                                     </Button>
                                 </Form>
@@ -209,16 +270,44 @@ export const SupportScreen = () => {
 
                                 <Form
                                     className="mt-6 flex flex-col gap-4"
-                                    onSubmit={(e) => {
+                                    onSubmit={async (e) => {
                                         e.preventDefault();
+                                        setLookupError("");
                                         const data = Object.fromEntries(new FormData(e.currentTarget));
-                                        console.log("Check support ticket:", data);
+                                        const ticketId = typeof data.ticketId === "string" ? data.ticketId.trim() : "";
+                                        const ticketEmail = typeof data.ticketEmail === "string" ? data.ticketEmail.trim() : "";
+
+                                        if (!ticketId || !ticketEmail) {
+                                            setLookupError("Please provide both ticket ID and email.");
+                                            return;
+                                        }
+
+                                        try {
+                                            const ticket = await lookupSupportTicket({
+                                                ticketId,
+                                                email: ticketEmail,
+                                            });
+                                            setLookupResult({
+                                                ticketId: ticket.publicReference,
+                                                status: ticket.status,
+                                            });
+                                        } catch {
+                                            setLookupResult(null);
+                                            setLookupError("No ticket found for that ticket ID and email.");
+                                        }
                                     }}
                                 >
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <Input name="ticketId" label="Ticket ID" placeholder="TK-XXXXXXXXXXX" size="lg" isRequired />
                                         <Input name="ticketEmail" label="Email Address" placeholder="your@email.com" type="email" size="lg" isRequired />
                                     </div>
+                                    {lookupError ? <p className="text-sm text-error-primary">{lookupError}</p> : null}
+                                    {lookupResult ? (
+                                        <p className="text-sm text-success-primary">
+                                            Ticket {lookupResult.ticketId} is currently {lookupResult.status.replaceAll("_", " ")}.
+                                        </p>
+                                    ) : null}
+
                                     <Button type="submit" color="secondary" size="lg" iconLeading={SearchLg} className="w-full md:w-auto">
                                         View Ticket
                                     </Button>

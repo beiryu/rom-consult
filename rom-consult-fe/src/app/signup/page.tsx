@@ -17,11 +17,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signupUser } from "@/api/auth";
 import { ContentDivider } from "@/components/application/content-divider/content-divider";
 import { Button } from "@/components/base/buttons/button";
 import { Form } from "@/components/base/form/form";
 import { Input } from "@/components/base/input/input";
 import { useAuthStore } from "@/stores/auth-store";
+import { splitFullName } from "@/utils/user";
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 const FEATURE_CARDS = [
     {
@@ -58,6 +62,9 @@ export default function SignupPage() {
     const router = useRouter();
     const registerSuccess = useAuthStore((state) => state.registerSuccess);
     const [passwordsMismatch, setPasswordsMismatch] = useState(false);
+    const [passwordInvalid, setPasswordInvalid] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     return (
         <main className="bg-primary px-4 py-10 sm:px-6 sm:py-16">
@@ -113,30 +120,49 @@ export default function SignupPage() {
                             className="flex flex-col gap-6"
                             onSubmit={(e) => {
                                 e.preventDefault();
+                                const form = e.currentTarget;
                                 setPasswordsMismatch(false);
-                                const data = Object.fromEntries(new FormData(e.currentTarget));
-                                const email = typeof data.email === "string" ? data.email.trim() : "";
-                                const fullName = typeof data.fullName === "string" ? data.fullName.trim() : "";
-                                const phoneRaw = typeof data.phoneNumber === "string" ? data.phoneNumber.trim() : "";
-                                const password = typeof data.password === "string" ? data.password : "";
-                                const confirmPassword = typeof data.confirmPassword === "string" ? data.confirmPassword : "";
+                                setPasswordInvalid(false);
+                                setErrorMessage("");
+                                const submit = async () => {
+                                    setIsLoading(true);
+                                    try {
+                                        const data = Object.fromEntries(new FormData(form));
+                                        const email = typeof data.email === "string" ? data.email.trim() : "";
+                                        const fullName = typeof data.fullName === "string" ? data.fullName.trim() : "";
+                                        const password = typeof data.password === "string" ? data.password : "";
+                                        const confirmPassword = typeof data.confirmPassword === "string" ? data.confirmPassword : "";
 
-                                if (!email || !fullName) {
-                                    return;
-                                }
+                                        if (!email || !fullName) {
+                                            setErrorMessage("Full name and email are required.");
+                                            return;
+                                        }
 
-                                if (password !== confirmPassword) {
-                                    setPasswordsMismatch(true);
-                                    return;
-                                }
+                                        if (password !== confirmPassword) {
+                                            setPasswordsMismatch(true);
+                                            return;
+                                        }
 
-                                registerSuccess({
-                                    email,
-                                    token: `mock-token-${email}`,
-                                    fullName,
-                                    ...(phoneRaw ? { phoneNumber: phoneRaw } : {}),
-                                });
-                                router.push("/dashboard");
+                                        if (!PASSWORD_REGEX.test(password)) {
+                                            setPasswordInvalid(true);
+                                            return;
+                                        }
+
+                                        const { firstName, lastName } = splitFullName(fullName);
+                                        const result = await signupUser({ email, password, firstName, lastName });
+                                        registerSuccess({
+                                            accessToken: result.accessToken,
+                                            refreshToken: result.refreshToken,
+                                            user: result.user,
+                                        });
+                                        router.push("/dashboard");
+                                    } catch {
+                                        setErrorMessage("Could not create account. Please try again.");
+                                    } finally {
+                                        setIsLoading(false);
+                                    }
+                                };
+                                void submit();
                             }}
                         >
                             <div className="flex flex-col gap-2">
@@ -203,6 +229,19 @@ export default function SignupPage() {
                                         Passwords do not match.
                                     </p>
                                 ) : null}
+                                {passwordInvalid ? (
+                                    <p className="text-sm text-error-primary" role="alert">
+                                        Password must be at least 8 chars and include uppercase, lowercase, number, and special character.
+                                    </p>
+                                ) : null}
+                                {errorMessage ? (
+                                    <p className="text-sm text-error-primary" role="alert">
+                                        {errorMessage}
+                                    </p>
+                                ) : null}
+                                <p className="text-sm text-tertiary">
+                                    Password must include uppercase, lowercase, a number, and one special character (@$!%*?&).
+                                </p>
                             </div>
 
                             <Button
@@ -211,6 +250,8 @@ export default function SignupPage() {
                                 color="primary"
                                 iconLeading={UserPlus02}
                                 className="w-full"
+                                isLoading={isLoading}
+                                isDisabled={isLoading}
                             >
                                 Create free account
                             </Button>

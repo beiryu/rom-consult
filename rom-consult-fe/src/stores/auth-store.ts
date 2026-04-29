@@ -4,33 +4,30 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export type AuthUser = {
+    id: string;
     email: string;
-    fullName?: string;
-    phoneNumber?: string;
-    profilePhotoDataUrl?: string;
+    firstName: string | null;
+    lastName: string | null;
+    userName: string;
+    isVerified: boolean;
+    phone?: string | null;
+    avatar?: string | null;
 };
 
-type LoginPayload = {
-    email: string;
-    token: string;
-    fullName?: string;
-    phoneNumber?: string;
-    profilePhotoDataUrl?: string;
-};
-
-type RegisterPayload = {
-    email: string;
-    token: string;
-    fullName: string;
-    phoneNumber?: string;
+type AuthSuccessPayload = {
+    accessToken: string;
+    refreshToken: string;
+    user: AuthUser;
 };
 
 type AuthState = {
     user: AuthUser | null;
-    token: string | null;
-    loginSuccess: (payload: LoginPayload) => void;
-    registerSuccess: (payload: RegisterPayload) => void;
-    updateUser: (payload: Partial<AuthUser>) => void;
+    accessToken: string | null;
+    refreshToken: string | null;
+    loginSuccess: (payload: AuthSuccessPayload) => void;
+    registerSuccess: (payload: AuthSuccessPayload) => void;
+    setTokens: (payload: Pick<AuthSuccessPayload, "accessToken" | "refreshToken">) => void;
+    updateUser: (payload: Partial<Pick<AuthUser, "email" | "firstName" | "lastName" | "phone" | "avatar">>) => void;
     logout: () => void;
 };
 
@@ -38,26 +35,21 @@ export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
             user: null,
-            token: null,
-            loginSuccess: ({ email, token, fullName, phoneNumber, profilePhotoDataUrl }) =>
+            accessToken: null,
+            refreshToken: null,
+            loginSuccess: ({ accessToken, refreshToken, user }) =>
                 set({
-                    token,
-                    user: {
-                        email,
-                        fullName,
-                        phoneNumber,
-                        profilePhotoDataUrl,
-                    },
+                    accessToken,
+                    refreshToken,
+                    user,
                 }),
-            registerSuccess: ({ email, token, fullName, phoneNumber }) =>
+            registerSuccess: ({ accessToken, refreshToken, user }) =>
                 set({
-                    token,
-                    user: {
-                        email,
-                        fullName,
-                        ...(phoneNumber?.trim() ? { phoneNumber: phoneNumber.trim() } : {}),
-                    },
+                    accessToken,
+                    refreshToken,
+                    user,
                 }),
+            setTokens: ({ accessToken, refreshToken }) => set({ accessToken, refreshToken }),
             updateUser: (payload) =>
                 set((state) => {
                     if (!state.user) {
@@ -71,14 +63,15 @@ export const useAuthStore = create<AuthState>()(
                         },
                     };
                 }),
-            logout: () => set({ user: null, token: null }),
+            logout: () => set({ user: null, accessToken: null, refreshToken: null }),
         }),
         {
             name: "rum-consult-auth",
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 user: state.user,
-                token: state.token,
+                accessToken: state.accessToken,
+                refreshToken: state.refreshToken,
             }),
         },
     ),

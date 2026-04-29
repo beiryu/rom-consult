@@ -10,6 +10,7 @@ import { Avatar } from "@/components/base/avatar/avatar";
 import { Button } from "@/components/base/buttons/button";
 import { useAuthStore } from "@/stores/auth-store";
 import { useBookingCartStore } from "@/stores/booking-cart-store";
+import { getUserInitials } from "@/utils/user";
 import { cx } from "@/utils/cx";
 
 type HeaderNavItem = {
@@ -26,19 +27,6 @@ const headerNavItems: HeaderNavItem[] = [
     { label: "Support", href: "/support" },
     { label: "FAQ", href: "/faq" },
 ];
-
-const getInitials = (fullName?: string) => {
-    if (!fullName?.trim()) {
-        return "U";
-    }
-
-    const words = fullName.trim().split(/\s+/);
-
-    return words
-        .slice(0, 2)
-        .map((word) => word[0]?.toUpperCase() ?? "")
-        .join("");
-};
 
 const MobileNavItem = (props: { className?: string; label: string; href?: string; children?: ReactNode }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -79,6 +67,7 @@ const MobileFooter = (props: {
     isHydrated: boolean;
     onLogout: () => void;
     initials: string;
+    avatar?: string | null;
 }) => {
     return (
         <div className="flex flex-col gap-8 border-t border-secondary px-4 py-6">
@@ -86,7 +75,7 @@ const MobileFooter = (props: {
                 {!props.isHydrated ? null : props.isAuthenticated ? (
                     <div className="flex items-center gap-3">
                         <Link href="/dashboard" className="group inline-flex rounded-full outline-focus-ring focus-visible:outline-2 focus-visible:outline-offset-2">
-                            <Avatar size="sm" initials={props.initials} focusable />
+                            <Avatar size="sm" initials={props.initials} src={props.avatar ?? undefined} focusable />
                         </Link>
                         <Button size="md" color="secondary-destructive" iconLeading={LogOut01} onClick={props.onLogout}>
                             Log out
@@ -122,7 +111,7 @@ export const Header = ({ items = headerNavItems, isFullWidth, isFloating, classN
     const logout = useAuthStore((state) => state.logout);
     const cartLineCount = useBookingCartStore((state) => state.items.length);
     const isAuthenticated = isHydrated && Boolean(user);
-    const userInitials = getInitials(user?.fullName);
+    const userInitials = user ? getUserInitials(user) : "U";
     const showCartCount = isCartHydrated && cartLineCount > 0;
 
     useEffect(() => {
@@ -252,7 +241,7 @@ export const Header = ({ items = headerNavItems, isFullWidth, isFloating, classN
                         {!isHydrated ? null : isAuthenticated ? (
                             <>
                                 <Link href="/dashboard" className="group inline-flex rounded-full outline-focus-ring focus-visible:outline-2 focus-visible:outline-offset-2">
-                                    <Avatar size="sm" initials={userInitials} focusable />
+                                    <Avatar size="sm" initials={userInitials} src={user?.avatar ?? undefined} focusable />
                                 </Link>
                                 <Button color="secondary-destructive" size={isFloating ? "md" : "sm"} iconLeading={LogOut01} onClick={logout}>
                                     Log out
@@ -342,6 +331,7 @@ export const Header = ({ items = headerNavItems, isFullWidth, isFloating, classN
                                         isAuthenticated={isAuthenticated}
                                         isHydrated={isHydrated}
                                         initials={userInitials}
+                                        avatar={user?.avatar}
                                         onLogout={logout}
                                     />
                                 </nav>

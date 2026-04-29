@@ -11,7 +11,7 @@ import { FeaturedIcon } from "@/components/foundations/featured-icon/featured-ic
 import { useBookingCartStore } from "@/stores/booking-cart-store";
 import { cx } from "@/utils/cx";
 import { formatCurrency, platformOptions, tierOptions, type PlatformId, type TierId } from "./booking-options";
-import type { ServiceItem } from "./services-data";
+import type { ServiceItem } from "./service-types";
 
 const stepNumberStyles = ["bg-brand-solid text-white", "bg-brand-solid text-white", "bg-brand-solid text-white", "bg-brand-solid text-white"];
 

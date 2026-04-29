@@ -2,6 +2,7 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { HelpCircle, Mail01 } from "@untitledui/icons";
+import { uploadAvatarFile, type UpdateUserProfilePayload } from "@/api/users";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Button } from "@/components/base/buttons/button";
 import { Form } from "@/components/base/form/form";
@@ -9,60 +10,30 @@ import { Input } from "@/components/base/input/input";
 import { Tooltip, TooltipTrigger } from "@/components/base/tooltip/tooltip";
 import { FileUploadDropZone } from "@/components/application/file-upload/file-upload-base";
 import type { AuthUser } from "@/stores/auth-store";
+import { getFullName, getUserInitials } from "@/utils/user";
 
 const MAX_PROFILE_IMAGE_BYTES = 3 * 1024 * 1024;
-
-const splitFullName = (fullName?: string) => {
-    const trimmed = fullName?.trim() || "";
-    if (!trimmed) {
-        return {
-            firstName: "",
-            lastName: "",
-        };
-    }
-
-    const [firstName, ...rest] = trimmed.split(/\s+/);
-    return {
-        firstName: firstName || "",
-        lastName: rest.join(" "),
-    };
-};
-
-const getInitials = (firstName: string, lastName: string, email: string) => {
-    const firstInitial = firstName.trim().charAt(0);
-    const lastInitial = lastName.trim().charAt(0);
-    const initials = `${firstInitial}${lastInitial}`.toUpperCase();
-
-    if (initials) {
-        return initials;
-    }
-
-    return email.trim().charAt(0).toUpperCase();
-};
-
-const toDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-        reader.onerror = () => reject(new Error("Failed to read file."));
-        reader.readAsDataURL(file);
-    });
 
 type PersonalInfoFormProps = {
     user: AuthUser;
     onCancel: () => void;
-    onSave: (payload: Pick<AuthUser, "email" | "fullName" | "profilePhotoDataUrl">) => void;
+    onSave: (payload: UpdateUserProfilePayload) => void;
+    isSaving?: boolean;
 };
 
-export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormProps) => {
-    const { firstName: initialFirstName, lastName: initialLastName } = useMemo(() => splitFullName(user.fullName), [user.fullName]);
-    const [firstName, setFirstName] = useState(initialFirstName);
-    const [lastName, setLastName] = useState(initialLastName);
+export const PersonalInfoForm = ({ user, onCancel, onSave, isSaving = false }: PersonalInfoFormProps) => {
+    const [firstName, setFirstName] = useState(user.firstName ?? "");
+    const [lastName, setLastName] = useState(user.lastName ?? "");
     const [email, setEmail] = useState(user.email);
-    const [profilePhotoDataUrl, setProfilePhotoDataUrl] = useState(user.profilePhotoDataUrl || "");
+    const [phone, setPhone] = useState(user.phone ?? "");
+    const [avatarUrl, setAvatarUrl] = useState(user.avatar ?? "");
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
-    const initials = getInitials(firstName, lastName, email);
+    const initials = useMemo(
+        () => getUserInitials({ firstName: firstName || null, lastName: lastName || null, email }),
+        [firstName, lastName, email],
+    );
 
     const handlePhotoDrop = async (files: FileList) => {
         const file = files.item(0);
@@ -76,16 +47,14 @@ export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormPro
         }
 
         try {
-            const dataUrl = await toDataUrl(file);
-            if (!dataUrl) {
-                setErrorMessage("Could not read the selected image.");
-                return;
-            }
-
+            setIsUploadingAvatar(true);
             setErrorMessage("");
-            setProfilePhotoDataUrl(dataUrl);
+            const { avatarUrl: uploadedAvatarUrl } = await uploadAvatarFile(file);
+            setAvatarUrl(uploadedAvatarUrl);
         } catch {
-            setErrorMessage("Could not read the selected image.");
+            setErrorMessage("Could not upload the selected image.");
+        } finally {
+            setIsUploadingAvatar(false);
         }
     };
 
@@ -95,6 +64,7 @@ export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormPro
         const trimmedFirstName = firstName.trim();
         const trimmedLastName = lastName.trim();
         const trimmedEmail = email.trim();
+        const trimmedPhone = phone.trim();
 
         if (!trimmedFirstName || !trimmedLastName || !trimmedEmail) {
             setErrorMessage("Name and email are required.");
@@ -104,8 +74,10 @@ export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormPro
         setErrorMessage("");
         onSave({
             email: trimmedEmail,
-            fullName: `${trimmedFirstName} ${trimmedLastName}`.trim(),
-            profilePhotoDataUrl: profilePhotoDataUrl || undefined,
+            firstName: trimmedFirstName,
+            lastName: trimmedLastName,
+            phone: trimmedPhone || undefined,
+            avatar: avatarUrl || undefined,
         });
     };
 
@@ -122,7 +94,7 @@ export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormPro
                         <Button color="secondary" size="md" onClick={onCancel} type="button">
                             Cancel
                         </Button>
-                        <Button color="primary" size="md" type="submit">
+                        <Button color="primary" size="md" type="submit" isLoading={isSaving} isDisabled={isSaving || isUploadingAvatar}>
                             Save
                         </Button>
                     </div>
@@ -189,8 +161,8 @@ export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormPro
                     <div className="flex flex-col gap-4 md:flex-row md:items-start">
                         <Avatar
                             size="xl"
-                            src={profilePhotoDataUrl || undefined}
-                            alt={user.fullName || "Profile photo"}
+                            src={avatarUrl || undefined}
+                            alt={getFullName({ firstName: firstName || null, lastName: lastName || null }) || "Profile photo"}
                             initials={initials}
                             border
                         />
@@ -204,6 +176,19 @@ export const PersonalInfoForm = ({ user, onCancel, onSave }: PersonalInfoFormPro
                             onSizeLimitExceed={() => setErrorMessage("Photo is too large. Please upload an image smaller than 3MB.")}
                         />
                     </div>
+                    {isUploadingAvatar ? <p className="text-sm text-tertiary">Uploading avatar...</p> : null}
+                </div>
+
+                <div className="grid gap-6 p-6 md:grid-cols-[220px_1fr] md:items-start">
+                    <p className="text-sm font-medium text-secondary">Phone number</p>
+                    <Input
+                        name="phone"
+                        aria-label="Phone number"
+                        value={phone}
+                        onChange={setPhone}
+                        placeholder="+1 (555) 123-4567"
+                        size="md"
+                    />
                 </div>
             </Form>
 

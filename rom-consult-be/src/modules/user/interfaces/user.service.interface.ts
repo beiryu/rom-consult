@@ -20,6 +20,7 @@ export interface IUserService {
     password?: string,
   ): Promise<ApiGenericResponseDto>;
   getProfile(userId: string): Promise<UserGetProfileResponseDto>;
+  uploadAvatar(userId: string, file: Express.Multer.File): Promise<string>;
   banUser(userId: string, data: UserBanDto): Promise<ApiGenericResponseDto>;
   unbanUser(userId: string): Promise<ApiGenericResponseDto>;
   getPurchaseHistory(userId: string): Promise<PurchaseHistoryOrderDto[]>;

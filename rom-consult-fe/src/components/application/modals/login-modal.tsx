@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Heading as AriaHeading } from "react-aria-components";
+import { loginUser } from "@/api/auth";
 import { Dialog, Modal, ModalOverlay } from "@/components/application/modals/modal";
 import { Button } from "@/components/base/buttons/button";
 import { CloseButton } from "@/components/base/buttons/close-button";
@@ -41,19 +42,26 @@ export const LoginModal = ({ isOpen, onOpenChange }: LoginModalProps) => {
                             className="flex flex-col gap-5 px-4 sm:px-6"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                const data = Object.fromEntries(new FormData(e.currentTarget));
+                                const form = e.currentTarget;
+                                const data = Object.fromEntries(new FormData(form));
                                 const email = typeof data.email === "string" ? data.email : "";
 
                                 if (!email) {
                                     return;
                                 }
 
-                                loginSuccess({
-                                    email,
-                                    token: `mock-token-${email}`,
-                                });
-                                onOpenChange(false);
-                                router.push("/dashboard");
+                                const password = typeof data.password === "string" ? data.password : "";
+                                const submit = async () => {
+                                    const result = await loginUser({ email, password });
+                                    loginSuccess({
+                                        accessToken: result.accessToken,
+                                        refreshToken: result.refreshToken,
+                                        user: result.user,
+                                    });
+                                    onOpenChange(false);
+                                    router.push("/dashboard");
+                                };
+                                void submit();
                             }}
                         >
                             <div className="flex flex-col gap-4">

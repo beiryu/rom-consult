@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpStatus, Put } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { DocGenericResponse } from "src/common/doc/decorators/doc.generic.decorator";
@@ -84,5 +96,21 @@ export class UserPublicController {
   ): Promise<PurchaseHistoryResponseDto> {
     const orders = await this.userService.getPurchaseHistory(user.userId);
     return { orders };
+  }
+
+  @Post("avatar")
+  @ApiBearerAuth("accessToken")
+  @ApiOperation({ summary: "Upload user avatar" })
+  @UseInterceptors(FileInterceptor("file"))
+  public async uploadAvatar(
+    @AuthUser() user: IAuthUser,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ avatarUrl: string }> {
+    if (!file) {
+      throw new BadRequestException("user.error.avatarMissing");
+    }
+
+    const avatarUrl = await this.userService.uploadAvatar(user.userId, file);
+    return { avatarUrl };
   }
 }

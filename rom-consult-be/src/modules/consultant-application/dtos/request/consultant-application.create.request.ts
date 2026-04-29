@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ConsultantTier } from "@prisma/client";
+import { Transform } from "class-transformer";
 import {
   IsBoolean,
   IsEmail,
@@ -37,6 +38,9 @@ export class ConsultantApplicationCreateDto {
   bio: string;
 
   @ApiProperty({ enum: ConsultantTier })
+  @Transform(({ value }) =>
+    typeof value === "string" ? value.toUpperCase() : value,
+  )
   @IsEnum(ConsultantTier)
   tier: ConsultantTier;
 

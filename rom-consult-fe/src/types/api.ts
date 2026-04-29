@@ -1,11 +1,23 @@
-export type PaginatedResponse<T> = {
-    data: T[];
-    total: number;
-    page: number;
-    pageSize: number;
+export type ApiEnvelope<T> = {
+    statusCode: number;
+    message: string;
+    timestamp: string;
+    data: T;
+};
+
+export type ApiPaginationMetadata = {
+    currentPage: number;
+    itemsPerPage: number;
+    totalItems: number;
+    totalPages: number;
+};
+
+export type ApiPaginatedData<T> = {
+    items: T[];
+    metadata: ApiPaginationMetadata;
 };
 
 export type PaginationParams = {
     page?: number;
-    pageSize?: number;
+    limit?: number;
 };

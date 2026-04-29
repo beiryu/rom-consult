@@ -17,6 +17,8 @@ model User {
   password    String
   firstName   String?   @map("first_name")
   lastName    String?   @map("last_name")
+  phone       String?   @map("phone")
+  avatar      String?   @map("avatar")
   isVerified  Boolean   @default(false) @map("is_verified")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
@@ -189,6 +191,12 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
 model ConsultantApplication {
   id            String            @id @default(uuid())
   fullName      String            @map("full_name")
@@ -214,5 +222,42 @@ model ConsultantApplication {
   @@index([email])
   @@index([status])
   @@map("consultant_applications")
+}
+
+model ContactMessage {
+  id              String   @id @default(uuid())
+  firstName       String   @map("first_name")
+  lastName        String   @map("last_name")
+  email           String
+  phone           String?
+  message         String   @db.Text
+  privacyAccepted Boolean  @map("privacy_accepted")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model SupportTicket {
+  id           String            @id @default(uuid())
+  publicReference String         @unique @map("public_reference")
+  fullName     String            @map("full_name")
+  email        String
+  bookingId    String?           @map("booking_id")
+  consultantId String?           @map("consultant_id")
+  category     String
+  subject      String
+  message      String            @db.Text
+  status       SupportTicketStatus @default(OPEN)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([publicReference])
+  @@index([status])
+  @@index([createdAt])
+  @@map("support_tickets")
 }
 

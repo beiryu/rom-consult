@@ -15,6 +15,7 @@ import {
     User01,
 } from "@untitledui/icons";
 import type { AuthUser } from "@/stores/auth-store";
+import { getFullName } from "@/utils/user";
 
 type IconType = FC<{ className?: string }>;
 
@@ -103,8 +104,9 @@ export const activityHighlights = [
 ];
 
 export const getDashboardDisplayName = (user: AuthUser) => {
-    if (user.fullName?.trim()) {
-        return user.fullName.trim();
+    const fullName = getFullName(user).trim();
+    if (fullName) {
+        return fullName;
     }
 
     return user.email.split("@")[0];

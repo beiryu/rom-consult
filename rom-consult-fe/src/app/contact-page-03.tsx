@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Building07, Clock, Mail01, MarkerPin01 } from "@untitledui/icons";
+import { submitContactMessage } from "@/api/contact-messages";
 import { BadgeGroup } from "@/components/base/badges/badge-groups";
 import { Badge } from "@/components/base/badges/badges";
 import { AppStoreButton, GooglePlayButton } from "@/components/base/buttons/app-store-buttons";
@@ -39,6 +40,10 @@ const HeaderCentered = () => {
 
 const ContactFormAndMap = () => {
     const [selectedCountryPhone, setSelectedCountryPhone] = useState("US");
+    const [privacyAccepted, setPrivacyAccepted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     return (
         <section className="bg-primary py-16 md:py-24">
@@ -50,10 +55,50 @@ const ContactFormAndMap = () => {
                         Fill out the form below and we&apos;ll respond within 24-48 hours.
                     </p>
                     <Form
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                             e.preventDefault();
-                            const data = Object.fromEntries(new FormData(e.currentTarget));
-                            console.log("Form data:", data);
+                            setErrorMessage("");
+                            setSuccessMessage("");
+
+                            if (!privacyAccepted) {
+                                setErrorMessage("Please accept the privacy policy to continue.");
+                                return;
+                            }
+
+                            const form = e.currentTarget;
+                            const data = Object.fromEntries(new FormData(form));
+                            const firstName = typeof data.firstName === "string" ? data.firstName.trim() : "";
+                            const lastName = typeof data.lastName === "string" ? data.lastName.trim() : "";
+                            const email = typeof data.email === "string" ? data.email.trim() : "";
+                            const phone = typeof data.phone === "string" ? data.phone.trim() : "";
+                            const message = typeof data.message === "string" ? data.message.trim() : "";
+
+                            if (!firstName || !lastName || !email || !message) {
+                                setErrorMessage("Please complete all required fields before submitting.");
+                                return;
+                            }
+
+                            const dialCode = phoneCodeOptions.find((item) => item.id === selectedCountryPhone)?.label ?? "";
+                            const normalizedPhone = phone ? `${dialCode} ${phone}`.trim() : "";
+
+                            setIsSubmitting(true);
+                            try {
+                                await submitContactMessage({
+                                    firstName,
+                                    lastName,
+                                    email,
+                                    phone: normalizedPhone || undefined,
+                                    message,
+                                    privacyAccepted: true,
+                                });
+                                setSuccessMessage("Message sent successfully. Our team will reply within 24-48 hours.");
+                                form.reset();
+                                setPrivacyAccepted(false);
+                            } catch {
+                                setErrorMessage("Unable to send your message right now. Please try again shortly.");
+                            } finally {
+                                setIsSubmitting(false);
+                            }
                         }}
                         className="mt-12 flex flex-col gap-8"
                     >
@@ -84,10 +129,12 @@ const ContactFormAndMap = () => {
                                     placeholder={countries.find((country) => country.code === selectedCountryPhone)?.phoneMask?.replaceAll("#", "0")}
                                 />
                             </InputGroup>
-                            <TextArea isRequired label="Message" placeholder="Leave us a message..." rows={5} />
+                            <TextArea isRequired name="message" label="Message" placeholder="Leave us a message..." rows={5} />
                             <Checkbox
                                 name="privacy"
                                 size="md"
+                                isSelected={privacyAccepted}
+                                onChange={setPrivacyAccepted}
                                 hint={
                                     <>
                                         You agree to our friendly{" "}
@@ -102,7 +149,10 @@ const ContactFormAndMap = () => {
                             />
                         </div>
 
-                        <Button type="submit" size="xl">
+                        {errorMessage ? <p className="text-sm text-error-primary">{errorMessage}</p> : null}
+                        {successMessage ? <p className="text-sm text-success-primary">{successMessage}</p> : null}
+
+                        <Button type="submit" size="xl" isDisabled={isSubmitting} isLoading={isSubmitting}>
                             Send message
                         </Button>
                     </Form>

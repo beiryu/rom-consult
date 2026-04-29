@@ -5,12 +5,14 @@ import { CheckCircle } from "@untitledui/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Heading as AriaHeading } from "react-aria-components";
+import { signupUser } from "@/api/auth";
 import { Dialog, Modal, ModalOverlay } from "@/components/application/modals/modal";
 import { Button } from "@/components/base/buttons/button";
 import { CloseButton } from "@/components/base/buttons/close-button";
 import { Form } from "@/components/base/form/form";
 import { Input } from "@/components/base/input/input";
 import { useAuthStore } from "@/stores/auth-store";
+import { splitFullName } from "@/utils/user";
 
 type Signup01ModalProps = {
     isOpen: boolean;
@@ -50,23 +52,28 @@ export const Signup01Modal = ({ isOpen, onOpenChange }: Signup01ModalProps) => {
                             className="flex flex-col gap-4 px-4 sm:px-6"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                const data = Object.fromEntries(new FormData(e.currentTarget));
-                                const email = typeof data.email === "string" ? data.email : "";
-                                const fullName = typeof data.fullName === "string" ? data.fullName : "";
-                                const phoneNumber = typeof data.phoneNumber === "string" ? data.phoneNumber : "";
+                                const form = e.currentTarget;
+                                const submit = async () => {
+                                    const data = Object.fromEntries(new FormData(form));
+                                    const email = typeof data.email === "string" ? data.email.trim() : "";
+                                    const fullName = typeof data.fullName === "string" ? data.fullName.trim() : "";
+                                    const password = typeof data.password === "string" ? data.password : "";
 
-                                if (!email || !fullName || !phoneNumber) {
-                                    return;
-                                }
+                                    if (!email || !fullName || !password) {
+                                        return;
+                                    }
 
-                                registerSuccess({
-                                    email,
-                                    token: `mock-token-${email}`,
-                                    fullName,
-                                    phoneNumber,
-                                });
-                                onOpenChange(false);
-                                router.push("/dashboard");
+                                    const { firstName, lastName } = splitFullName(fullName);
+                                    const result = await signupUser({ email, password, firstName, lastName });
+                                    registerSuccess({
+                                        accessToken: result.accessToken,
+                                        refreshToken: result.refreshToken,
+                                        user: result.user,
+                                    });
+                                    onOpenChange(false);
+                                    router.push("/dashboard");
+                                };
+                                void submit();
                             }}
                         >
                             <Input
@@ -79,15 +86,6 @@ export const Signup01Modal = ({ isOpen, onOpenChange }: Signup01ModalProps) => {
                                 autoComplete="name"
                             />
                             <Input isRequired hideRequiredIndicator label="Email" name="email" placeholder="Enter your email" size="lg" autoComplete="email" />
-                            <Input
-                                isRequired
-                                hideRequiredIndicator
-                                label="Phone number"
-                                name="phoneNumber"
-                                placeholder="Enter your phone number"
-                                size="lg"
-                                autoComplete="tel"
-                            />
                             <Input
                                 isRequired
                                 hideRequiredIndicator
