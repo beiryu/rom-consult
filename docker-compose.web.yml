@@ -1,0 +1,7 @@
+services:
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/your-org/rom-consult-fe:latest}
+    container_name: romconsult-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
