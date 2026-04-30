@@ -139,6 +139,9 @@ cd /opt/rom-consult
 docker compose -f rom-consult-fe/docker-compose.yml pull
 docker compose -f rom-consult-fe/docker-compose.yml up -d
 docker compose -f rom-consult-fe/docker-compose.yml ps
+# Cleanup old images/build cache on low-disk servers
+docker image prune -f
+docker builder prune -f
 ```
 
 If your GHCR package is private, login once on server:
@@ -276,12 +279,17 @@ pm2 save
 # Pull/restart frontend container
 docker compose -f rom-consult-fe/docker-compose.yml pull
 docker compose -f rom-consult-fe/docker-compose.yml up -d
+
+# Cleanup old images/build cache on low-disk servers
+docker image prune -f
+docker builder prune -f
 ```
 
 ## Notes
 
 - Do not expose `5432`/`6379` publicly.
 - Rotate all secrets if any were shared in chat/logs.
+- `latest` updates do not automatically remove old images; run prune commands regularly if disk is limited.
 - If request timeout persists, inspect:
   - `pm2 logs`
   - `sudo tail -f /var/log/nginx/error.log`

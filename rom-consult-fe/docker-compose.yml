@@ -3,5 +3,10 @@ services:
     image: ghcr.io/beiryu/rom-consult-fe:latest
     container_name: romconsult-web
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "127.0.0.1:3000:3000"
