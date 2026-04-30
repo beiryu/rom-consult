@@ -1,6 +1,6 @@
 services:
   web:
-    image: ${WEB_IMAGE:-ghcr.io/your-org/rom-consult-fe:latest}
+    image: ghcr.io/beiryu/rom-consult-fe:latest
     container_name: romconsult-web
     restart: unless-stopped
     ports:

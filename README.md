@@ -1,12 +1,10 @@
 # rom-consult Deployment Guide (Hybrid)
 
-This repository supports 2 production approaches:
+This repository production approach:
 
 - Docker for `Postgres` + `Redis` only (both flows)
 - PM2 for Node process (`NestJS` API)
-- Frontend can run with either:
-  - PM2 (`next start`, old flow, requires server build)
-  - Docker prebuilt image (recommended, no build on server)
+- Frontend runs by Docker prebuilt image (no build on server)
 - Nginx on host (not in Docker) for reverse proxy and SSL termination
 
 ## 1) Server prerequisites
@@ -92,7 +90,7 @@ Important:
 
 - `NEXT_PUBLIC_*` variables are embedded at build time for Next.js.
 - Always set frontend env before running `npm run build`.
-- After changing `NEXT_PUBLIC_API_BASE_URL`, rebuild frontend and restart PM2 web process.
+- After changing `NEXT_PUBLIC_API_BASE_URL`, rebuild frontend image and redeploy web container.
 
 ## 3) Start Postgres + Redis with Docker
 
@@ -123,7 +121,7 @@ Start PM2 for API only (from repo root):
 
 ```bash
 cd /opt/rom-consult
-pm2 start ecosystem.api-only.config.cjs
+pm2 start ecosystem.config.cjs
 pm2 save
 pm2 startup
 pm2 list
@@ -132,27 +130,15 @@ pm2 list
 ## 4.1) Frontend as prebuilt Docker image (no build on server)
 
 1. Build/push frontend image in GitHub Actions (`.github/workflows/build-fe-image.yml`).
-2. On server, set your image tag and pull:
-
-```bash
-cd /opt/rom-consult
-touch .env
-nano .env
-```
-
-Add:
-
-```bash
-WEB_IMAGE=ghcr.io/<your-org>/rom-consult-fe:latest
-```
+2. On server, pull and run fixed image `ghcr.io/beiryu/rom-consult-fe:latest`:
 
 Then run:
 
 ```bash
 cd /opt/rom-consult
-docker compose -f docker-compose.web.yml --env-file .env pull
-docker compose -f docker-compose.web.yml --env-file .env up -d
-docker compose -f docker-compose.web.yml ps
+docker compose -f rom-consult-fe/docker-compose.yml pull
+docker compose -f rom-consult-fe/docker-compose.yml up -d
+docker compose -f rom-consult-fe/docker-compose.yml ps
 ```
 
 If your GHCR package is private, login once on server:
@@ -266,12 +252,6 @@ curl -sS -o /dev/null -w "%{http_code}\n" https://rom-consult.com/
 curl -sS -o /dev/null -w "%{http_code}\n" https://rom-consult.com/api/health
 ```
 
-Project helper:
-
-```bash
-yarn verify:hybrid
-```
-
 ## 8) Routine update flow (no frontend build on server)
 
 ```bash
@@ -290,24 +270,12 @@ yarn migrate:prod
 
 # Reload API PM2 process
 cd /opt/rom-consult
-pm2 restart ecosystem.api-only.config.cjs
+pm2 restart ecosystem.config.cjs
 pm2 save
 
 # Pull/restart frontend container
-docker compose -f docker-compose.web.yml --env-file .env pull
-docker compose -f docker-compose.web.yml --env-file .env up -d
-```
-
-## 8.1) Legacy flow (build Next.js on server)
-
-If you still want old behavior, keep using:
-
-```bash
-cd /opt/rom-consult/rom-consult-fe
-yarn install --frozen-lockfile
-yarn build
-cd /opt/rom-consult
-pm2 restart ecosystem.config.cjs
+docker compose -f rom-consult-fe/docker-compose.yml pull
+docker compose -f rom-consult-fe/docker-compose.yml up -d
 ```
 
 ## Notes
