@@ -117,18 +117,22 @@ export const FooterLarge12 = () => {
                             <p className="font-semibold text-primary">RomConsult LTD</p>
                             <div className="flex items-start gap-2">
                                 <MarkerPin01 className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
-                                <span>60 rue François 1er, 75008 Paris</span>
+                                <span className="whitespace-pre-line">
+                                    {"20 Wenlock Road"}
+                                    {"\n"}
+                                    {"London, N1 7GU, England"}
+                                </span>
                             </div>
                             <a href="tel:+14588007464" className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover">
                                 <Phone className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
                                 <span>+1 (458) 800-7464</span>
                             </a>
                             <a
-                                href="mailto:info@rom-consult.com"
+                                href="mailto:support@romconsult.com"
                                 className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover"
                             >
                                 <Mail01 className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
-                                <span>info@rom-consult.com</span>
+                                <span>support@romconsult.com</span>
                             </a>
                         </div>
                     </div>

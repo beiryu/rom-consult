@@ -11,7 +11,7 @@ export default function TermsOfServicePage() {
     return (
         <LegalPageShell
             title="Terms of Service"
-            lastUpdated="28 Apr 2026"
+            lastUpdated="13 May 2026"
             description="Please read these terms carefully before using our services."
         >
             <h3>Service-based business</h3>
@@ -71,8 +71,8 @@ export default function TermsOfServicePage() {
             <h2>6. Contact information</h2>
             <p>
                 For support and service inquiries, contact RomConsult at{" "}
-                <Link className="text-brand-secondary underline" href="mailto:hello@rumconsult.co">
-                    hello@rumconsult.co
+                <Link className="text-brand-secondary underline" href="mailto:support@romconsult.com">
+                    support@romconsult.com
                 </Link>
                 .
             </p>

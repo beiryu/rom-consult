@@ -43,6 +43,7 @@ const ContactFormAndMap = () => {
     const toast = useToastHelpers();
     const [selectedCountryPhone, setSelectedCountryPhone] = useState("US");
     const [privacyAccepted, setPrivacyAccepted] = useState(false);
+    const [marketingConsent, setMarketingConsent] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -153,6 +154,13 @@ const ContactFormAndMap = () => {
                                         </a>
                                     </>
                                 }
+                            />
+                            <Checkbox
+                                name="marketing"
+                                size="md"
+                                isSelected={marketingConsent}
+                                onChange={setMarketingConsent}
+                                label="I agree to receive marketing communications and industry insights from RomConsult. I understand I can unsubscribe at any time."
                             />
                         </div>
 

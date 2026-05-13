@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
     return (
         <LegalPageShell
             title="Privacy Policy"
-            lastUpdated="17 Nov 2025"
+            lastUpdated="13 May 2026"
             description="This policy explains how RomConsult collects, uses, discloses, and safeguards your information when you use our website and services."
         >
             <h2>1. Introduction</h2>
@@ -170,8 +170,8 @@ export default function PrivacyPolicyPage() {
             <h2>15. Contact us</h2>
             <p>
                 If you have questions about this Privacy Policy or wish to exercise your rights, please contact us at{" "}
-                <a className="text-brand-secondary underline" href="mailto:hello@rumconsult.co">
-                    hello@rumconsult.co
+                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
+                    support@romconsult.com
                 </a>
                 .
             </p>
