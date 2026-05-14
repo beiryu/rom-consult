@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building07, Clock, Mail01, MarkerPin01 } from "@untitledui/icons";
+import { Clock, Mail01, MarkerPin01 } from "@untitledui/icons";
 import { submitContactMessage } from "@/api/contact-messages";
 import { BadgeGroup } from "@/components/base/badges/badge-groups";
 import { Badge } from "@/components/base/badges/badges";
@@ -199,18 +199,6 @@ const ContactFormAndMap = () => {
                                                 {"\n"}75008 Paris
                                                 {"\n"}France
                                                 {"\n"}+1 (458) 800-7464
-                                            </p>
-                                        ),
-                                    },
-                                    {
-                                        title: "Gig service provider",
-                                        icon: Building07,
-                                        content: (
-                                            <p className="mt-1 whitespace-pre-line text-md text-secondary_on-brand">
-                                                <span className="font-semibold text-primary_on-brand">PD Cash LLC</span>
-                                                {"\n"}30 N Gould St, STE R
-                                                {"\n"}Sheridan, WY 82801, USA
-                                                {"\n"}+1 210 201 6000
                                             </p>
                                         ),
                                     },

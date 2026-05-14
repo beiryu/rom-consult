@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { VisitorOfferModal } from "@/components/application/modals/visitor-offer-modal";
 
 const DISMISS_KEY = "romconsult-visitor-offer-dismissed";
-const FIRST_VISIT_DELAY_MS = 4000;
+const FIRST_VISIT_DELAY_MS = 45000;
 const MIN_HIDDEN_MS = 5000;
 
 const isDismissed = () => {
