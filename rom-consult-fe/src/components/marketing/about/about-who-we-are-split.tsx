@@ -38,7 +38,9 @@ export const AboutWhoWeAreSplit = () => {
                                     <div>
                                         <p className="text-md font-semibold text-primary">Company information</p>
                                         <p className="mt-1 text-sm text-tertiary">RomConsult LTD</p>
-                                        <p className="text-sm text-tertiary">60 rue François 1er, 75008 Paris</p>
+                                        <p className="text-sm text-tertiary">60 rue François 1er</p>
+                                        <p className="text-sm text-tertiary">75008 Paris</p>
+                                        <p className="text-sm text-tertiary">France</p>
                                         <p className="text-sm text-tertiary">+1 (458) 800-7464</p>
                                         <p className="text-sm text-tertiary">info@rom-consult.com</p>
                                     </div>

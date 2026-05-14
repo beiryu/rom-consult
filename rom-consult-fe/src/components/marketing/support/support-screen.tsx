@@ -349,9 +349,10 @@ export const SupportScreen = () => {
                                             content: (
                                                 <p className="mt-1 whitespace-pre-line text-md text-secondary_on-brand">
                                                     <span className="font-semibold text-primary_on-brand">RomConsult LTD</span>
-                                                    {"\n"}20 Wenlock Road
-                                                    {"\n"}London, N1 7GU, England
-                                                    {"\n"}+44 7474 711663
+                                                    {"\n"}60 rue François 1er
+                                                    {"\n"}75008 Paris
+                                                    {"\n"}France
+                                                    {"\n"}+1 (458) 800-7464
                                                 </p>
                                             ),
                                         },

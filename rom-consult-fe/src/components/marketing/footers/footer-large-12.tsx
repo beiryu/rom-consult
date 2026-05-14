@@ -118,9 +118,11 @@ export const FooterLarge12 = () => {
                             <div className="flex items-start gap-2">
                                 <MarkerPin01 className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
                                 <span className="whitespace-pre-line">
-                                    {"20 Wenlock Road"}
+                                    {"60 rue François 1er"}
                                     {"\n"}
-                                    {"London, N1 7GU, England"}
+                                    {"75008 Paris"}
+                                    {"\n"}
+                                    {"France"}
                                 </span>
                             </div>
                             <a href="tel:+14588007464" className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover">
