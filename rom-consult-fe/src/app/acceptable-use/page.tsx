@@ -94,8 +94,8 @@ export default function AcceptableUsePage() {
             <h2>7. Reporting violations</h2>
             <p>
                 If you become aware of any violations of this Policy, please report them to{" "}
-                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </a>
                 .
             </p>
@@ -135,8 +135,8 @@ export default function AcceptableUsePage() {
             <h2>12. Contact us</h2>
             <p>
                 Questions about this Policy? Contact us at{" "}
-                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </a>
                 .
             </p>

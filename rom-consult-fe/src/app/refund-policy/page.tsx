@@ -52,8 +52,8 @@ export default function RefundPolicyPage() {
             <ul>
                 <li>
                     Email:{" "}
-                    <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                        support@romconsult.com
+                    <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                        support@rom-consult.com
                     </a>
                 </li>
                 <li>Subject line: &quot;Refund Request - [Order Number]&quot;</li>
@@ -144,8 +144,8 @@ export default function RefundPolicyPage() {
             <h2>14. Questions</h2>
             <p>
                 If you have questions about this Refund Policy, please contact us at{" "}
-                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </a>
                 .
             </p>

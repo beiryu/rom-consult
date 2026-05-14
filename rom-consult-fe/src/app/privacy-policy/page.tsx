@@ -170,8 +170,8 @@ export default function PrivacyPolicyPage() {
             <h2>15. Contact us</h2>
             <p>
                 If you have questions about this Privacy Policy or wish to exercise your rights, please contact us at{" "}
-                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </a>
                 .
             </p>

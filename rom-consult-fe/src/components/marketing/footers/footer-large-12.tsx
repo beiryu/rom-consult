@@ -128,11 +128,11 @@ export const FooterLarge12 = () => {
                                 <span>+1 (458) 800-7464</span>
                             </a>
                             <a
-                                href="mailto:support@romconsult.com"
+                                href="mailto:support@rom-consult.com"
                                 className="flex items-start gap-2 transition duration-100 ease-linear hover:text-tertiary_hover"
                             >
                                 <Mail01 className="mt-0.5 size-5 shrink-0 text-fg-secondary" />
-                                <span>support@romconsult.com</span>
+                                <span>support@rom-consult.com</span>
                             </a>
                         </div>
                     </div>

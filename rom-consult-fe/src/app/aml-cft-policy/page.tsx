@@ -100,8 +100,8 @@ export default function AmlCftPolicyPage() {
             <h2>9. Contact information</h2>
             <p>
                 For compliance inquiries, contact{" "}
-                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </a>
                 .
             </p>

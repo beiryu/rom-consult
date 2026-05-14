@@ -182,7 +182,7 @@ const ContactFormAndMap = () => {
                                     {
                                         title: "Email",
                                         icon: Mail01,
-                                        content: <p className="mt-1 text-md font-semibold text-primary_on-brand">support@romconsult.com</p>,
+                                        content: <p className="mt-1 text-md font-semibold text-primary_on-brand">support@rom-consult.com</p>,
                                     },
                                     {
                                         title: "Response time",

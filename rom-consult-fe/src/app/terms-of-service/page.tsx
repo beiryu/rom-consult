@@ -71,8 +71,8 @@ export default function TermsOfServicePage() {
             <h2>6. Contact information</h2>
             <p>
                 For support and service inquiries, contact RomConsult at{" "}
-                <Link className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <Link className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </Link>
                 .
             </p>

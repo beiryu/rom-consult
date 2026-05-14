@@ -119,8 +119,8 @@ export default function DisclaimerPage() {
             <h2>16. Contact information</h2>
             <p>
                 If you have any questions about this disclaimer, please contact us at{" "}
-                <a className="text-brand-secondary underline" href="mailto:support@romconsult.com">
-                    support@romconsult.com
+                <a className="text-brand-secondary underline" href="mailto:support@rom-consult.com">
+                    support@rom-consult.com
                 </a>
                 .
             </p>
